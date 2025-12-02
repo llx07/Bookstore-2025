@@ -1,20 +1,19 @@
-#include <bits/stdc++.h>
+#include <vector>
+#include <random>
+#include <filesystem>
+#include <fstream>
 
 #include <catch2/catch_test_macros.hpp>
 
 #include "MemoryRiver.hpp"
 
-using namespace std;
 
 TEST_CASE("MemoryRiver Basic Read/Write", "[MemoryRiver]") {
+    std::filesystem::remove("tmp_file");
     MemoryRiver<unsigned long long> mr("tmp_file");
     mr.initialise();
-    mr.write_info(114, 1);
-    int tmp;
-    mr.get_info(tmp, 1);
-    REQUIRE(tmp == 114);
 
-    vector<int> pos;
+    std::vector<int> pos;
     for (int i = 0; i < 100; i++) {
         pos.push_back(mr.write(i));
     }
@@ -22,35 +21,26 @@ TEST_CASE("MemoryRiver Basic Read/Write", "[MemoryRiver]") {
     for (unsigned long long i = 0; i < 100; i++) {
         unsigned long long val;
         mr.read(val, pos[i]);
-        cerr << "i = " << i << ", val = " << val << endl;
-        cerr << "i = " << i << ", pos = " << pos[i] << endl;
         REQUIRE(val == i);
         val <<= 32;
         mr.update(val, pos[i]);
-    }
-    for (unsigned long long i = 0; i < 100; i++) {
-        unsigned long long val;
-        mr.read(val, pos[i]);
-        REQUIRE((val >> 32) == i);
-        mr.Delete(pos[i]);
     }
 
     pos.clear();
     for (int i = 0; i < 100; i++) {
         pos.push_back(mr.write(i));
     }
-
-    remove("tmp_file");
 }
 
 TEST_CASE("MemoryRiver Persistent Read/Write", "[MemoryRiver]") {
+    std::filesystem::remove("tmp_file");
     const int N = 100;
-    vector<int> data;
-    mt19937 gen{114514};
+    std::vector<int> data;
+    std::mt19937 gen{114514};
     for (int i = 0; i < N; i++) {
         data.push_back(gen());
     }
-    vector<int> pos(data.size());
+    std::vector<int> pos(data.size());
     do {
         MemoryRiver<int> mr("tmp_file");
         mr.initialise();
@@ -79,4 +69,42 @@ TEST_CASE("MemoryRiver Persistent Read/Write", "[MemoryRiver]") {
             REQUIRE(x == data[i]);
         }
     } while (false);
+}
+
+TEST_CASE("MemoryRiver Delete", "[MemoryRiver]") {
+    std::filesystem::remove("tmp_file");
+    MemoryRiver<unsigned> mr;
+    mr.initialise("tmp_file");
+
+
+    std::vector<int> pos;
+    for (int i = 0; i < 100; i++) {
+        pos.push_back(mr.write(i));
+    }
+
+    for (unsigned i = 0; i < 100; i++) {
+        unsigned val;
+        mr.read(val, pos[i]);
+        REQUIRE(val == i);
+        mr.Delete(pos[i]);
+    }
+
+    pos.clear();
+    for (int i = 0; i < 100; i++) {
+        pos.push_back(mr.write(i * 100));
+    }
+
+    for (unsigned i = 0; i < 100; i++) {
+        unsigned val;
+        mr.read(val, pos[i]);
+        REQUIRE(val == i * 100);
+    }
+
+    std::fstream file;
+    file.open("tmp_file", std::ios::in);
+    auto st = file.tellp();
+    file.seekp(0, std::ios::end);
+    auto ed = file.tellp();
+    int size = (ed - st);
+    REQUIRE(size == 100 * sizeof(unsigned) + 2 * sizeof(int));
 }

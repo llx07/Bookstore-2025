@@ -2,6 +2,7 @@
 #define BPT_MEMORYRIVER_HPP
 
 #include <cassert>
+#include <filesystem>
 #include <fstream>
 #include <queue>
 
@@ -11,12 +12,34 @@ class MemoryRiver {
     static_assert(sizeof(T) >= sizeof(int), "The sizeof T must be greater than size of int");
 
 private:
-    std::queue<int> q;
     int count = 0;
     int free_head = 0;
     std::fstream file;
     std::string file_name;
     static constexpr int sizeofT = sizeof(T);
+
+    void init_file() {
+        file.open(file_name, std::ios::out | std::ios::binary);
+        int tmp = 0;
+        for (int i = 0; i < info_len; ++i) file.write(reinterpret_cast<char*>(&tmp), sizeof(int));
+        file.close();
+    }
+    void open_file() {
+        file.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
+        get_info(count, 1);
+        get_info(free_head, 2);
+    };
+
+    int get_nxt(int index) {
+        int nxt;
+        file.seekg((info_len) * sizeof(int) + sizeofT * (index - 1));
+        file.read(reinterpret_cast<char*>(&nxt), sizeof(int));
+        return nxt;
+    }
+    void write_nxt(int index, int val) {
+        file.seekp((info_len) * sizeof(int) + sizeofT * (index - 1));
+        file.write(reinterpret_cast<const char*>(&val), sizeof(int));
+    }
 
 public:
     MemoryRiver() = default;
@@ -24,32 +47,24 @@ public:
     MemoryRiver(const std::string& _file_name) : file_name(_file_name) {}
 
     ~MemoryRiver() {
-        // file.seekp(0);
-        // file.write(reinterpret_cast<const char*>(&count), sizeof(int));
+        write_info(count, 1);
+        write_info(free_head, 2);
         file.close();
     }
 
     void initialise(const std::string& FN = "") {
         if (!FN.empty()) file_name = FN;
-        file.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
-        if (!file) {
-            file.open(file_name, std::ios::out | std::ios::binary);
-            int tmp = 0;
-            for (int i = 0; i < info_len; ++i)
-                file.write(reinterpret_cast<char*>(&tmp), sizeof(int));
-            count = 0;
+#ifdef ONLINE_JUDGE
+        init_file();
+        open_file();
+        return;
+#endif
 
-            file.close();
-            file.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
-        } else {
-            // file.seekg(0);
-            // file.read(reinterpret_cast<char*>(&count), sizeof(int));
-            file.seekg(0, std::ios::beg);
-            const auto st = file.tellg();
-            file.seekg(0, std::ios::end);
-            const auto ed = file.tellg();
-            count = ((ed-st) - info_len * sizeof(int)) / sizeofT;
+        if (!FN.empty()) file_name = FN;
+        if (!std::filesystem::exists(file_name)) {
+            init_file();
         }
+        open_file();
     }
 
     // 读出第 n 个int的值赋给tmp，1_base
@@ -73,13 +88,13 @@ public:
     // 位置索引index可以取为对象写入的起始位置
     int write(const T& t) {
         assert(file.is_open());
-        if (q.empty()) {
+        if (!free_head) {
             file.seekp((info_len) * sizeof(int) + sizeofT * count);
             file.write(reinterpret_cast<const char*>(&t), sizeofT);
             return ++count;
         }
-        const int pos = q.front();
-        q.pop();
+        const int pos = free_head;
+        free_head = get_nxt(free_head);
         file.seekp((info_len) * sizeof(int) + sizeofT * (pos - 1));
         file.write(reinterpret_cast<const char*>(&t), sizeofT);
         return pos;
@@ -102,7 +117,8 @@ public:
     // 删除位置索引index对应的对象(不涉及空间回收时，可忽略此函数)，保证调用的index都是由write函数产生
     void Delete(const int index) {
         assert(file.is_open());
-        q.push(index);
+        write_nxt(index, free_head);
+        free_head = index;
     }
 };
 
