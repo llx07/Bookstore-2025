@@ -1,12 +1,10 @@
-#include <vector>
-#include <random>
+#include <catch2/catch_test_macros.hpp>
 #include <filesystem>
 #include <fstream>
-
-#include <catch2/catch_test_macros.hpp>
+#include <random>
+#include <vector>
 
 #include "MemoryRiver.hpp"
-
 
 TEST_CASE("MemoryRiver Basic Read/Write", "[MemoryRiver]") {
     std::filesystem::remove("tmp_file");
@@ -75,7 +73,6 @@ TEST_CASE("MemoryRiver Delete", "[MemoryRiver]") {
     std::filesystem::remove("tmp_file");
     MemoryRiver<unsigned> mr;
     mr.initialise("tmp_file");
-
 
     std::vector<int> pos;
     for (int i = 0; i < 100; i++) {
