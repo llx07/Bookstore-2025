@@ -4,7 +4,6 @@
 #include <cassert>
 #include <filesystem>
 #include <fstream>
-#include <queue>
 
 template <class T, int info_len = 2>
 class MemoryRiver {
@@ -16,28 +15,32 @@ private:
     int free_head = 0;
     std::fstream file;
     std::string file_name;
+
+    static constexpr int super_info_len = 2;
+    static constexpr int GLOBAL_OFFSET = super_info_len * sizeof(int);
     static constexpr int sizeofT = sizeof(T);
 
     void init_file() {
         file.open(file_name, std::ios::out | std::ios::binary);
         int tmp = 0;
-        for (int i = 0; i < info_len; ++i) file.write(reinterpret_cast<char*>(&tmp), sizeof(int));
+        for (int i = 0; i < info_len + super_info_len; ++i)
+            file.write(reinterpret_cast<char*>(&tmp), sizeof(int));
         file.close();
     }
     void open_file() {
         file.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
-        get_info(count, 1);
-        get_info(free_head, 2);
+        get_info(count, -1);
+        get_info(free_head, 0);
     };
 
     int get_nxt(int index) {
         int nxt;
-        file.seekg((info_len) * sizeof(int) + sizeofT * (index - 1));
+        file.seekg(GLOBAL_OFFSET + (info_len) * sizeof(int) + sizeofT * (index - 1));
         file.read(reinterpret_cast<char*>(&nxt), sizeof(int));
         return nxt;
     }
     void write_nxt(int index, int val) {
-        file.seekp((info_len) * sizeof(int) + sizeofT * (index - 1));
+        file.seekp(GLOBAL_OFFSET + (info_len) * sizeof(int) + sizeofT * (index - 1));
         file.write(reinterpret_cast<const char*>(&val), sizeof(int));
     }
 
@@ -47,8 +50,8 @@ public:
     MemoryRiver(const std::string& _file_name) : file_name(_file_name) {}
 
     ~MemoryRiver() {
-        write_info(count, 1);
-        write_info(free_head, 2);
+        write_info(count, -1);
+        write_info(free_head, 0);
         file.close();
     }
 
@@ -71,7 +74,7 @@ public:
     void get_info(int& tmp, int n) {
         if (n > info_len) return;
         assert(file.is_open());
-        file.seekg((n - 1) * sizeof(int));
+        file.seekg(GLOBAL_OFFSET + (n - 1) * sizeof(int));
         file.read(reinterpret_cast<char*>(&tmp), sizeof(int));
     }
 
@@ -79,7 +82,7 @@ public:
     void write_info(int tmp, int n) {
         if (n > info_len) return;
         assert(file.is_open());
-        file.seekp((n - 1) * sizeof(int));
+        file.seekp(GLOBAL_OFFSET + (n - 1) * sizeof(int));
         file.write(reinterpret_cast<const char*>(&tmp), sizeof(int));
     }
 
@@ -89,13 +92,13 @@ public:
     int write(const T& t) {
         assert(file.is_open());
         if (!free_head) {
-            file.seekp((info_len) * sizeof(int) + sizeofT * count);
+            file.seekp(GLOBAL_OFFSET + (info_len) * sizeof(int) + sizeofT * count);
             file.write(reinterpret_cast<const char*>(&t), sizeofT);
             return ++count;
         }
         const int pos = free_head;
         free_head = get_nxt(free_head);
-        file.seekp((info_len) * sizeof(int) + sizeofT * (pos - 1));
+        file.seekp(GLOBAL_OFFSET + (info_len) * sizeof(int) + sizeofT * (pos - 1));
         file.write(reinterpret_cast<const char*>(&t), sizeofT);
         return pos;
     }
@@ -103,14 +106,14 @@ public:
     // 用t的值更新位置索引index对应的对象，保证调用的index都是由write函数产生
     void update(const T& t, const int index) {
         assert(file.is_open());
-        file.seekp((info_len) * sizeof(int) + sizeofT * (index - 1));
+        file.seekp(GLOBAL_OFFSET + (info_len) * sizeof(int) + sizeofT * (index - 1));
         file.write(reinterpret_cast<const char*>(&t), sizeofT);
     }
 
     // 读出位置索引index对应的T对象的值并赋值给t，保证调用的index都是由write函数产生
     void read(T& t, const int index) {
         assert(file.is_open());
-        file.seekg((info_len) * sizeof(int) + sizeofT * (index - 1));
+        file.seekg(GLOBAL_OFFSET + (info_len) * sizeof(int) + sizeofT * (index - 1));
         file.read(reinterpret_cast<char*>(&t), sizeofT);
     }
 
