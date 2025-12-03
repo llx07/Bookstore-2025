@@ -40,13 +40,13 @@ private:
     }
     void set_first_head(int pos) { file.write_info(pos, 1); }
 
-#define DEFINE_GETTER_AND_SETTER(MEMBER)                                  \
+#define DEFINE_GETTER_AND_SETTER(MEMBER)                               \
     void set_##MEMBER(int index, const decltype(Block::MEMBER)& val) { \
-        if (!index) return;                                               \
+        if (!index) return;                                            \
         file.update(val, index, offsetof(Block, MEMBER));              \
     }                                                                     \
     decltype(Block::MEMBER) get_##MEMBER(int index) {                  \
-        assert(index);                                                    \
+        assert(index);                                                 \
         decltype(Block::MEMBER) val;                                   \
         file.read(val, index, offsetof(Block, MEMBER));                \
         return val;                                                       \
@@ -65,9 +65,7 @@ private:
         file.read(data, block_id);
         return data;
     }
-    void set_block(int block_id, const Block& block) {
-        file.update(block, block_id);
-    }
+    void set_block(int block_id, const Block& block) { file.update(block, block_id); }
 
     void update_minmax_elem(Block& b) {
         if (!b.count) return;  // don't modify empty block
@@ -170,8 +168,7 @@ private:
 
 public:
     void initialise(const std::string& file_name) {
-        file.initialise(file_name);
-    }
+        file.initialise(file_name); }
     void insert(const Key& key, const T& value) {
         if (!get_first_head()) {  // the blocklist is empty
             int pos = allocate_new_block();
