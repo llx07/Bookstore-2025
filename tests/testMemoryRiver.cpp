@@ -182,3 +182,34 @@ TEST_CASE("MemoryRiver Delete Multiple Times With Info", "[MemoryRiver]") {
         REQUIRE(size_before == size_after);
     }
 }
+
+TEST_CASE("MemoryRiver Partial Read&Write", "[MemoryRiver]") {
+    std::filesystem::remove("tmp_file");
+    struct Data {
+        int x, y;
+    };
+    std::cerr << "Stage 0" << '\n';
+    MemoryRiver<Data, 0> mr("tmp_file");
+    mr.initialise();
+    std::vector<int> pos;
+    for (int i = 0; i < 100; i++) {
+        pos.push_back(mr.write(Data{i, i * i}));
+    }
+
+    std::cerr << "Stage 1" << '\n';
+    for (int i = 0; i < 100; i++) {
+        int res;
+        mr.read(res, pos[i], offsetof(Data, y));
+        REQUIRE(res == i * i);
+
+        mr.update(i * i * i, pos[i], offsetof(Data, x));
+    }
+
+    std::cerr << "Stage 2" << '\n';
+    for (int i = 0; i < 100; i++) {
+        Data res{0, 0};
+        mr.read(res, pos[i]);
+        REQUIRE(res.x == i * i * i);
+        REQUIRE(res.y == i * i);
+    }
+}
