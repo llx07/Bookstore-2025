@@ -26,8 +26,5 @@ include(CTest)
 include(Catch)
 catch_discover_tests(unit_tests)
 
-# temporary entry point for debugging
-add_executable(t1 src/test.cpp)
-
 # solving the problem 2967
 add_executable(code src/P2967.cpp)
