@@ -167,8 +167,7 @@ private:
     }
 
 public:
-    void initialise(const std::string& file_name) {
-        file.initialise(file_name); }
+    void initialise(const std::string& file_name) { file.initialise(file_name); }
     void insert(const Key& key, const T& value) {
         if (!get_first_head()) {  // the blocklist is empty
             int pos = allocate_new_block();
