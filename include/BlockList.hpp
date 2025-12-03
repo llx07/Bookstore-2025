@@ -1,16 +1,18 @@
 #ifndef BOOKSTORE_BLOCKLIST_HPP
 #define BOOKSTORE_BLOCKLIST_HPP
 
-#include <MemoryRiver.hpp>
+#include <algorithm>
 #include <cstddef>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "MemoryRiver.hpp"
+
 template <class Key, class T>
 class Blocklist {
 private:
-    static constexpr int BLOCK_CAPACITY = 128;
+    static constexpr int BLOCK_CAPACITY = 512;
     struct KeyValuePair {
         Key first;
         T second;
@@ -136,17 +138,10 @@ private:
     }
 
     void insert_in_block(int block_id, const Key& key, const T& value) {
-        // TODO(llx) binary search in the block to speed up
         auto [h, b] = get_block(block_id);
-        int pos = h.count;
+
         auto elem = KeyValuePair{key, value};
-        for (int i = 0; i < h.count; i++) {
-            if (b.data[i] == elem) return;
-            if (b.data[i] > elem) {
-                pos = i;
-                break;
-            }
-        }
+        int pos = std::lower_bound(b.data, b.data + h.count, elem) - b.data;
         for (int i = h.count - 1; i >= pos; --i) {
             b.data[i + 1] = b.data[i];
         }
@@ -158,17 +153,10 @@ private:
 
     bool can_merge(int id1, int id2) { return get_count(id1) + get_count(id2) < BLOCK_CAPACITY; }
     void erase_in_block(int block_id, const Key& key, const T& value) {
-        // TODO(llx) binary search in the block to speed up
         auto [h, b] = get_block(block_id);
         auto elem = KeyValuePair{key, value};
-        int pos = -1;
-        for (int i = 0; i < h.count; i++) {
-            if (b.data[i] == elem) {
-                pos = i;
-                break;
-            }
-        }
-        if (pos == -1) return;
+        int pos = std::lower_bound(b.data, b.data + h.count, elem) - b.data;
+        if (b.data[pos] != elem) return;
         for (int i = pos; i < h.count - 1; i++) {
             b.data[i] = b.data[i + 1];
         }

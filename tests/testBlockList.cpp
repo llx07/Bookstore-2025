@@ -87,3 +87,26 @@ TEST_CASE("BlockList Delete Nonexist element", "[BlockList]") {
         REQUIRE(result == std::vector<int>{-i});
     }
 }
+TEST_CASE("BlockList Reopen", "[BlockList]") {
+    std::filesystem::remove("data_head");
+    std::filesystem::remove("data_body");
+    std::vector<unsigned> data;
+    const int N = 10000;
+    std::mt19937 gen{14514};
+    const int key = 114514;
+    for (int i = 0; i < N; i++) {
+        data.push_back(gen());
+    }
+    {
+        Blocklist<int, unsigned> blocklist;
+        blocklist.initialise("data");
+        for (auto v : data) blocklist.insert(key, v);
+    }
+    std::ranges::sort(data);
+    {
+        Blocklist<int, unsigned> blocklist;
+        blocklist.initialise("data");
+        auto result = blocklist.query(key);
+        REQUIRE(result == data);
+    }
+}
