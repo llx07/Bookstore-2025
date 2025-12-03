@@ -57,13 +57,11 @@ public:
 
     void initialise(const std::string& FN = "") {
         if (!FN.empty()) file_name = FN;
-#ifdef ONLINE_JUDGE
-        init_file();
-        open_file();
-        return;
-#endif
-
-        if (!FN.empty()) file_name = FN;
+// #ifdef ONLINE_JUDGE
+//         init_file();
+//         open_file();
+//         return;
+// #endif
         if (!std::filesystem::exists(file_name)) {
             init_file();
         }
