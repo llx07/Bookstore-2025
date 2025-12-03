@@ -1,6 +1,8 @@
 #ifndef BOOKSTORE_BLOCKLIST_HPP
 #define BOOKSTORE_BLOCKLIST_HPP
 
+#include <pstl/algorithm_fwd.h>
+
 #include <algorithm>
 #include <cstddef>
 #include <string>
@@ -18,40 +20,35 @@ private:
         T second;
         auto operator<=>(const KeyValuePair&) const = default;
     };
-    // Metadata of a block in file 'head'.
-    struct HeadNode {
-        int body_index;  // the index of the block in the file 'body'
+    struct Block {
         int count;       // the number of elements in the block
         int prev_head;   // the index of the previous node
         int next_head;   // the index of next node, in file 'head'
         KeyValuePair min_elem;
         KeyValuePair max_elem;
-    };
-    // the real data of the block, in file 'body'
-    struct BodyNode {
         // one additional space for splitting block afterward
         KeyValuePair data[BLOCK_CAPACITY + 1];
     };
+    // the real data of the block, in file 'body'
 
-    MemoryRiver<HeadNode, 1> head;  // info: first head
-    MemoryRiver<BodyNode, 0> body;  // no info
+    MemoryRiver<Block, 1> file;  // info: first block
 
     int get_first_head() {
         int pos;
-        head.get_info(pos, 1);
+        file.get_info(pos, 1);
         return pos;
     }
-    void set_first_head(int pos) { head.write_info(pos, 1); }
+    void set_first_head(int pos) { file.write_info(pos, 1); }
 
 #define DEFINE_GETTER_AND_SETTER(MEMBER)                                  \
-    void set_##MEMBER(int index, const decltype(HeadNode::MEMBER)& val) { \
+    void set_##MEMBER(int index, const decltype(Block::MEMBER)& val) { \
         if (!index) return;                                               \
-        head.update(val, index, offsetof(HeadNode, MEMBER));              \
+        file.update(val, index, offsetof(Block, MEMBER));              \
     }                                                                     \
-    decltype(HeadNode::MEMBER) get_##MEMBER(int index) {                  \
+    decltype(Block::MEMBER) get_##MEMBER(int index) {                  \
         assert(index);                                                    \
-        decltype(HeadNode::MEMBER) val;                                   \
-        head.read(val, index, offsetof(HeadNode, MEMBER));                \
+        decltype(Block::MEMBER) val;                                   \
+        file.read(val, index, offsetof(Block, MEMBER));                \
         return val;                                                       \
     }
 
@@ -63,113 +60,107 @@ private:
     DEFINE_GETTER_AND_SETTER(max_elem);
 
     /* getter and setter of a whole block */
-    std::pair<HeadNode, BodyNode> get_block(int block_id) {
-        HeadNode head_node;
-        head.read(head_node, block_id);
-        BodyNode data;
-        body.read(data, head_node.body_index);
-        return {head_node, data};
+    Block get_block(int block_id) {
+        Block data;
+        file.read(data, block_id);
+        return data;
     }
-    void set_block(int block_id, const std::pair<HeadNode, BodyNode>& block) {
-        head.update(block.first, block_id);
-        body.update(block.second, block.first.body_index);
+    void set_block(int block_id, const Block& block) {
+        file.update(block, block_id);
     }
 
-    void update_minmax_elem(HeadNode& h, BodyNode& b) {
-        if (!h.count) return;  // don't modify empty block
-        h.min_elem = b.data[0];
-        h.max_elem = b.data[h.count - 1];
+    void update_minmax_elem(Block& b) {
+        if (!b.count) return;  // don't modify empty block
+        b.min_elem = b.data[0];
+        b.max_elem = b.data[b.count - 1];
     }
 
     int allocate_new_block() {
-        int body_pos = body.write(BodyNode{});
-        HeadNode init_head{};
-        init_head.body_index = body_pos;
-        return head.write(init_head);
+        int pos = file.write(Block{});
+        return pos;
     }
 
     // split half the data block_id into the next block
     // prerequisite: the block is not empty
     void split_block(int block_id) {
-        auto [h1, b1] = get_block(block_id);
-        assert(h1.count >= 2);
-        int mid = h1.count / 2;
+        auto b1 = get_block(block_id);
+        assert(b1.count >= 2);
+        int mid = b1.count / 2;
 
         int new_block = allocate_new_block();
-        auto [h2, b2] = get_block(new_block);
+        auto b2 = get_block(new_block);
         // copy the latter part of the data
-        for (int i = mid; i < h1.count; i++) {
+        for (int i = mid; i < b1.count; i++) {
             b2.data[i - mid] = b1.data[i];
         }
         // update count
-        h2.count = h1.count - mid;
-        h1.count = mid;
+        b2.count = b1.count - mid;
+        b1.count = mid;
         // update the chain list
-        h2.next_head = h1.next_head;
-        h2.prev_head = block_id;
-        set_prev_head(h1.next_head, new_block);  // also work if h is the last block
-        h1.next_head = new_block;
+        b2.next_head = b1.next_head;
+        b2.prev_head = block_id;
+        set_prev_head(b1.next_head, new_block);  // also work if h is the last block
+        b1.next_head = new_block;
         // update the min/max elements
-        update_minmax_elem(h1, b1);
-        update_minmax_elem(h2, b2);
-        set_block(block_id, {h1, b1});
-        set_block(new_block, {h2, b2});
+        update_minmax_elem(b1);
+        update_minmax_elem(b2);
+        set_block(block_id, b1);
+        set_block(new_block, b2);
     }
 
     void merge_block(int id1, int id2) {
-        auto [h1, b1] = get_block(id1);
-        auto [h2, b2] = get_block(id2);
-        assert(h1.count + h2.count <= BLOCK_CAPACITY);
-        for (int i = h1.count; i < h1.count + h2.count; i++) {
-            b1.data[i] = b2.data[i - h1.count];
+        auto b1 = get_block(id1);
+        auto b2 = get_block(id2);
+        assert(b1.count + b2.count <= BLOCK_CAPACITY);
+        for (int i = b1.count; i < b1.count + b2.count; i++) {
+            b1.data[i] = b2.data[i - b1.count];
         }
-        h1.count += h2.count;
+        b1.count += b2.count;
 
-        // update the chain list (only h1, because h2 will be deleted soon)
-        h1.next_head = h2.next_head;
-        set_prev_head(h2.next_head, id1);
+        // update the chain list (only b1, because b2 will be deleted soon)
+        b1.next_head = b2.next_head;
+        set_prev_head(b2.next_head, id1);
         // update the min/max elements
-        update_minmax_elem(h1, b1);
-        set_block(id1, {h1, b1});
+        update_minmax_elem(b1);
+        set_block(id1, b1);
 
-        // remove h2,b2 from the disk
-        body.Delete(h2.body_index);
-        head.Delete(id2);
+        // remove b2,b2 from the disk
+        file.Delete(id2);
     }
 
     void insert_in_block(int block_id, const Key& key, const T& value) {
-        auto [h, b] = get_block(block_id);
+        auto b = get_block(block_id);
 
         auto elem = KeyValuePair{key, value};
-        int pos = std::lower_bound(b.data, b.data + h.count, elem) - b.data;
-        for (int i = h.count - 1; i >= pos; --i) {
+        int pos = std::lower_bound(b.data, b.data + b.count, elem) - b.data;
+        for (int i = b.count - 1; i >= pos; --i) {
             b.data[i + 1] = b.data[i];
         }
         b.data[pos] = elem;
-        ++h.count;
-        update_minmax_elem(h, b);
-        set_block(block_id, {h, b});
+        ++b.count;
+        update_minmax_elem(b);
+        set_block(block_id, b);
     }
 
     bool can_merge(int id1, int id2) { return get_count(id1) + get_count(id2) < BLOCK_CAPACITY; }
     void erase_in_block(int block_id, const Key& key, const T& value) {
-        auto [h, b] = get_block(block_id);
+        auto b = get_block(block_id);
         auto elem = KeyValuePair{key, value};
-        int pos = std::lower_bound(b.data, b.data + h.count, elem) - b.data;
+        int pos = std::lower_bound(b.data, b.data + b.count, elem) - b.data;
         if (b.data[pos] != elem) return;
-        for (int i = pos; i < h.count - 1; i++) {
+        for (int i = pos; i < b.count - 1; i++) {
             b.data[i] = b.data[i + 1];
         }
-        --h.count;
-        update_minmax_elem(h, b);
-        set_block(block_id, {h, b});
+        --b.count;
+        update_minmax_elem(b);
+        set_block(block_id, b);
     }
     // Return all elements in a block whose key is equal to key
     std::vector<T> extract_in_block(int block_id, const Key& key) {
         std::vector<T> results;
-        auto [head_node, body_data] = get_block(block_id);
-        for (int i = 0; i < head_node.count; i++) {
-            auto [k, v] = body_data.data[i];
+        auto b = get_block(block_id);
+        for (int i = 0; i < b.count; i++) {
+            auto [k, v] = b.data[i];
             if (k == key) {
                 results.push_back(v);
             }
@@ -179,8 +170,7 @@ private:
 
 public:
     void initialise(const std::string& file_name) {
-        head.initialise(file_name + "_head");
-        body.initialise(file_name + "_body");
+        file.initialise(file_name);
     }
     void insert(const Key& key, const T& value) {
         if (!get_first_head()) {  // the blocklist is empty

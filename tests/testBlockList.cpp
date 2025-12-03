@@ -10,8 +10,7 @@
 #include "BlockList.hpp"
 
 TEST_CASE("BlockList Basic Insert", "[BlockList]") {
-    std::filesystem::remove("data_head");
-    std::filesystem::remove("data_body");
+    std::filesystem::remove("data");
     Blocklist<int, int> blocklist;
     blocklist.initialise("data");
     auto data = std::vector<int>{6, 1, 2, 3, 4};
@@ -28,8 +27,7 @@ TEST_CASE("BlockList Basic Insert", "[BlockList]") {
 }
 
 TEST_CASE("BlockList Massive Insert", "[BlockList]") {
-    std::filesystem::remove("data_head");
-    std::filesystem::remove("data_body");
+    std::filesystem::remove("data");
     Blocklist<int, unsigned> blocklist;
     blocklist.initialise("data");
     const int N = 10000;
@@ -51,8 +49,7 @@ TEST_CASE("BlockList Massive Insert", "[BlockList]") {
 }
 
 TEST_CASE("BlockList Basic Delete", "[BlockList]") {
-    std::filesystem::remove("data_head");
-    std::filesystem::remove("data_body");
+    std::filesystem::remove("data");
     Blocklist<int, int> blocklist;
     blocklist.initialise("data");
     auto data = std::vector<int>{6, 1, 2, 3, 4};
@@ -70,8 +67,7 @@ TEST_CASE("BlockList Basic Delete", "[BlockList]") {
 }
 
 TEST_CASE("BlockList Delete Nonexist element", "[BlockList]") {
-    std::filesystem::remove("data_head");
-    std::filesystem::remove("data_body");
+    std::filesystem::remove("data");
     Blocklist<int, int> blocklist;
     blocklist.initialise("data");
     for (int i = 1; i <= 10; i++) {
@@ -88,8 +84,7 @@ TEST_CASE("BlockList Delete Nonexist element", "[BlockList]") {
     }
 }
 TEST_CASE("BlockList Reopen", "[BlockList]") {
-    std::filesystem::remove("data_head");
-    std::filesystem::remove("data_body");
+    std::filesystem::remove("data");
     std::vector<unsigned> data;
     const int N = 10000;
     std::mt19937 gen{14514};
