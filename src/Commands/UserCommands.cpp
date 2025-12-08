@@ -113,7 +113,7 @@ void DeleteUserCommand::execute(Session& session) {
     if (!session.users_manager.userid_exists(userid)) {
         throw ExecutionException("delete error: userid doesn't exist.");
     }
-    if (session.is_loging_in(userid)) {
+    if (session.is_logged_in(userid)) {
         throw ExecutionException("delete error: userid have been logged in");
     }
     session.users_manager.erase_user(userid);

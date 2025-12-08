@@ -30,7 +30,7 @@ TEST_CASE("UserCommands: SU command", "[UserCommands]") {
         SwitchUserCommand cmd(util::to_array<User::USERID_T>("customer"),
                               util::to_array<User::PASSWORD_T>("123"));
         REQUIRE_NOTHROW(cmd.execute(session));
-        REQUIRE(session.is_loging_in(util::to_array<User::USERID_T>("customer")));
+        REQUIRE(session.is_logged_in(util::to_array<User::USERID_T>("customer")));
         REQUIRE(session.get_privilege() == 1);
     }
 
@@ -60,7 +60,7 @@ TEST_CASE("UserCommands: SU command", "[UserCommands]") {
         REQUIRE(session.get_privilege() == 7);
         SwitchUserCommand cmd(util::to_array<User::USERID_T>("customer"));
         REQUIRE_NOTHROW(cmd.execute(session));
-        REQUIRE(session.is_loging_in(util::to_array<User::USERID_T>("customer")));
+        REQUIRE(session.is_logged_in(util::to_array<User::USERID_T>("customer")));
         REQUIRE(session.get_privilege() == 1);
     }
     SECTION("Su without password - privilege higher than 2") {
@@ -68,7 +68,7 @@ TEST_CASE("UserCommands: SU command", "[UserCommands]") {
         REQUIRE(session.get_privilege() == 3);
         SwitchUserCommand cmd(util::to_array<User::USERID_T>("customer"));
         REQUIRE_NOTHROW(cmd.execute(session));
-        REQUIRE(session.is_loging_in(util::to_array<User::USERID_T>("customer")));
+        REQUIRE(session.is_logged_in(util::to_array<User::USERID_T>("customer")));
         REQUIRE(session.get_privilege() == 1);
     }
     SECTION("Su without password - same privilege") {

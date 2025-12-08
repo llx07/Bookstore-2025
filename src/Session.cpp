@@ -24,6 +24,6 @@ void Session::select_book(int bookID) {
     assert(!login_stack.empty());
     login_stack.top().book_selected = bookID;
 }
-bool Session::is_loging_in(const User::USERID_T& userid) {
+bool Session::is_logged_in(const User::USERID_T& userid) {
     return users_manager.get_login_count(userid) > 0;
 }
