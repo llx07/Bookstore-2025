@@ -2,3 +2,4 @@ requirements.md
 .vscode
 .idea
 build
+build_coverage
