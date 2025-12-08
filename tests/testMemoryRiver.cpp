@@ -112,7 +112,7 @@ TEST_CASE("MemoryRiver Delete", "[MemoryRiver]") {
         unsigned val;
         mr.read(val, pos[i]);
         REQUIRE(val == i);
-        mr.Delete(pos[i]);
+        mr.erase(pos[i]);
     }
 
     pos.clear();
@@ -153,7 +153,7 @@ TEST_CASE("MemoryRiver Delete Multiple Times With Info", "[MemoryRiver]") {
             unsigned val;
             mr.read(val, pos[i]);
             REQUIRE(val == i);
-            mr.Delete(pos[i]);
+            mr.erase(pos[i]);
         }
 
         size_before = get_size();
