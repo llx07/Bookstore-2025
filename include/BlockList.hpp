@@ -16,7 +16,7 @@
 //   Key: The type of the key. Must be comparable using operator< and be POD.
 //   T: The type of the value. Must be comparable using operator< and be POD.
 template <class Key, class T>
-class Blocklist {
+class BlockList {
 public:
     // Initializes BlockList with file_name. Will create a new file if the file doesn't exist.
     void initialise(const std::string& file_name);
@@ -103,11 +103,11 @@ private:
 };
 
 template <class Key, class T>
-void Blocklist<Key, T>::initialise(const std::string& file_name) {
+void BlockList<Key, T>::initialise(const std::string& file_name) {
     file.initialise(file_name);
 }
 template <class Key, class T>
-void Blocklist<Key, T>::insert(const Key& key, const T& value) {
+void BlockList<Key, T>::insert(const Key& key, const T& value) {
     if (!get_first_head()) {  // the blocklist is empty
         int pos = allocate_new_block();
         set_first_head(pos);
@@ -127,7 +127,7 @@ void Blocklist<Key, T>::insert(const Key& key, const T& value) {
     }
 }
 template <class Key, class T>
-void Blocklist<Key, T>::erase(const Key& key, const T& value) {
+void BlockList<Key, T>::erase(const Key& key, const T& value) {
     if (!get_first_head()) return;  // the block list is empty
 
     auto elem = KeyValuePair{key, value};
@@ -156,7 +156,7 @@ void Blocklist<Key, T>::erase(const Key& key, const T& value) {
     }
 }
 template <class Key, class T>
-std::vector<T> Blocklist<Key, T>::query(const Key& key) {
+std::vector<T> BlockList<Key, T>::query(const Key& key) {
     std::vector<T> results;
 
     if (!get_first_head()) return results;  // the block list is empty
@@ -188,28 +188,28 @@ std::vector<T> Blocklist<Key, T>::query(const Key& key) {
     return results;
 }
 template <class Key, class T>
-typename Blocklist<Key, T>::Block Blocklist<Key, T>::get_block(int block_id) {
+typename BlockList<Key, T>::Block BlockList<Key, T>::get_block(int block_id) {
     Block data;
     file.read(data, block_id);
     return data;
 }
 template <class Key, class T>
-void Blocklist<Key, T>::set_block(int block_id, const Block& block) {
+void BlockList<Key, T>::set_block(int block_id, const Block& block) {
     file.update(block, block_id);
 }
 template <class Key, class T>
-void Blocklist<Key, T>::update_minmax_elem(Block& b) {
+void BlockList<Key, T>::update_minmax_elem(Block& b) {
     if (!b.count) return;  // don't modify empty block
     b.min_elem = b.data[0];
     b.max_elem = b.data[b.count - 1];
 }
 template <class Key, class T>
-int Blocklist<Key, T>::allocate_new_block() {
+int BlockList<Key, T>::allocate_new_block() {
     int pos = file.write(Block{});
     return pos;
 }
 template <class Key, class T>
-void Blocklist<Key, T>::split_block(int block_id) {
+void BlockList<Key, T>::split_block(int block_id) {
     auto b1 = get_block(block_id);
     assert(b1.count >= 2);
     int mid = b1.count / 2;
@@ -235,7 +235,7 @@ void Blocklist<Key, T>::split_block(int block_id) {
     set_block(new_block, b2);
 }
 template <class Key, class T>
-void Blocklist<Key, T>::merge_block(int id1, int id2) {
+void BlockList<Key, T>::merge_block(int id1, int id2) {
     auto b1 = get_block(id1);
     auto b2 = get_block(id2);
     assert(b1.count + b2.count <= BLOCK_CAPACITY);
@@ -255,7 +255,7 @@ void Blocklist<Key, T>::merge_block(int id1, int id2) {
     file.erase(id2);
 }
 template <class Key, class T>
-void Blocklist<Key, T>::insert_in_block(int block_id, const Key& key, const T& value) {
+void BlockList<Key, T>::insert_in_block(int block_id, const Key& key, const T& value) {
     auto b = get_block(block_id);
 
     auto elem = KeyValuePair{key, value};
@@ -269,11 +269,11 @@ void Blocklist<Key, T>::insert_in_block(int block_id, const Key& key, const T& v
     set_block(block_id, b);
 }
 template <class Key, class T>
-bool Blocklist<Key, T>::can_merge(int id1, int id2) {
+bool BlockList<Key, T>::can_merge(int id1, int id2) {
     return get_count(id1) + get_count(id2) < BLOCK_CAPACITY;
 }
 template <class Key, class T>
-void Blocklist<Key, T>::erase_in_block(int block_id, const Key& key, const T& value) {
+void BlockList<Key, T>::erase_in_block(int block_id, const Key& key, const T& value) {
     auto b = get_block(block_id);
     auto elem = KeyValuePair{key, value};
     int pos = std::lower_bound(b.data, b.data + b.count, elem) - b.data;
@@ -286,7 +286,7 @@ void Blocklist<Key, T>::erase_in_block(int block_id, const Key& key, const T& va
     set_block(block_id, b);
 }
 template <class Key, class T>
-std::vector<T> Blocklist<Key, T>::extract_in_block(int block_id, const Key& key) {
+std::vector<T> BlockList<Key, T>::extract_in_block(int block_id, const Key& key) {
     std::vector<T> results;
     auto b = get_block(block_id);
     for (int i = 0; i < b.count; i++) {

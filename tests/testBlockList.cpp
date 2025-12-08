@@ -11,7 +11,7 @@
 
 TEST_CASE("BlockList Basic Insert", "[BlockList]") {
     std::filesystem::remove("data");
-    Blocklist<int, int> blocklist;
+    BlockList<int, int> blocklist;
     blocklist.initialise("data");
     auto data = std::vector<int>{6, 1, 2, 3, 4};
     const int key = 114514;
@@ -28,7 +28,7 @@ TEST_CASE("BlockList Basic Insert", "[BlockList]") {
 
 TEST_CASE("BlockList Massive Insert", "[BlockList]") {
     std::filesystem::remove("data");
-    Blocklist<int, unsigned> blocklist;
+    BlockList<int, unsigned> blocklist;
     blocklist.initialise("data");
     const int N = 10000;
     std::vector<unsigned> data;
@@ -50,7 +50,7 @@ TEST_CASE("BlockList Massive Insert", "[BlockList]") {
 
 TEST_CASE("BlockList Basic Delete", "[BlockList]") {
     std::filesystem::remove("data");
-    Blocklist<int, int> blocklist;
+    BlockList<int, int> blocklist;
     blocklist.initialise("data");
     auto data = std::vector<int>{6, 1, 2, 3, 4};
     const int key = 114514;
@@ -68,7 +68,7 @@ TEST_CASE("BlockList Basic Delete", "[BlockList]") {
 
 TEST_CASE("BlockList Delete Nonexist element", "[BlockList]") {
     std::filesystem::remove("data");
-    Blocklist<int, int> blocklist;
+    BlockList<int, int> blocklist;
     blocklist.initialise("data");
     for (int i = 1; i <= 10; i++) {
         blocklist.insert(-i, -i);
@@ -93,13 +93,13 @@ TEST_CASE("BlockList Reopen", "[BlockList]") {
         data.push_back(gen());
     }
     {
-        Blocklist<int, unsigned> blocklist;
+        BlockList<int, unsigned> blocklist;
         blocklist.initialise("data");
         for (auto v : data) blocklist.insert(key, v);
     }
     std::ranges::sort(data);
     {
-        Blocklist<int, unsigned> blocklist;
+        BlockList<int, unsigned> blocklist;
         blocklist.initialise("data");
         auto result = blocklist.query(key);
         REQUIRE(result == data);

@@ -13,7 +13,7 @@ int main() {
     int n;
     std::cin >> n;
 
-    Blocklist<string64, int> data;
+    BlockList<string64, int> data;
     data.initialise("data");
 
     auto get_string64 = []() -> string64 {
