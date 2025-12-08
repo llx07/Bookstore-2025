@@ -46,6 +46,7 @@ public:
     std::vector<Book> get_books_with_name(const Book::BOOKNAME_T& name);
     std::vector<Book> get_books_with_author(const Book::AUTHOR_T& author);
     std::vector<Book> get_books_with_keyword(const Book::KEYWORD_T& keyword);
+    std::vector<Book> get_all_books();
 
     // Creates a new book with only the info of ISBN.
     // The ISBN SHALL not exist before.
@@ -59,6 +60,12 @@ public:
 
     // Helper function for testing.
     void reset();
+    // get a book by id
+    Book get_book_by_id(int id);
+    // Helper function for converting ids into books.
+    std::vector<Book> get_books_by_ids(const std::vector<int>& ids);
+    // Returns the id of a book by ISBN. Returns 0 if no such book exists.
+    int get_id_by_ISBN(const Book::ISBN_T& ISBN);
 
 private:
     // The primary data for all books
@@ -70,10 +77,6 @@ private:
     // Note: only one keyword is stored in each key-value pair
     BlockList<Book::KEYWORD_T, int> keyword_index;
 
-    // Helper function for converting ids into books.
-    std::vector<Book> get_books_by_ids(const std::vector<int>& ids);
-    // Returns the id of a book by ISBN. Returns 0 if no such book exists.
-    int get_id_by_ISBN(const Book::ISBN_T& ISBN);
     // Helper function for erasing all data and indexes of the book
     void remove_data(const Book::ISBN_T& ISBN);
     // Helper function for writing all data and indexes of a book.

@@ -26,6 +26,10 @@ std::vector<Book> BooksManager::get_books_with_keyword(const Book::KEYWORD_T& ke
     const std::vector<int> ids = keyword_index.query(keyword);
     return get_books_by_ids(ids);
 }
+std::vector<Book> BooksManager::get_all_books() {
+    const std::vector<int> ids = book_name_index.query_all();
+    return get_books_by_ids(ids);
+}
 void BooksManager::create_book(const Book::ISBN_T& ISBN) {
     Book new_book;
     new_book.ISBN = ISBN;
@@ -59,6 +63,11 @@ void BooksManager::reset() {
     std::filesystem::remove("book_author_index");
     std::filesystem::remove("book_keyword_index");
     new (this) BooksManager();
+}
+Book BooksManager::get_book_by_id(int id) {
+    Book book_now;
+    main_data.read(book_now, id);
+    return book_now;
 }
 
 std::vector<Book> BooksManager::get_books_by_ids(const std::vector<int>& ids) {
