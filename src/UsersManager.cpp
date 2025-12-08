@@ -6,6 +6,16 @@ UsersManager& UsersManager::getInstance() {
     static UsersManager instance;
     return instance;
 }
+int UsersManager::get_login_count(const User::USERID_T& userid) {
+    return get_user_by_userid(userid).login_count;
+}
+void UsersManager::modify_login_count(const User::USERID_T& userid, int k) {
+    // XXX(llx) space of performance improvement here.
+    User user = get_user_by_userid(userid);
+    user.login_count += k;
+    erase_user(userid);
+    add_user(user);
+}
 bool UsersManager::userid_exists(const User::USERID_T& userid) {
     return !user_data.query(userid).empty();
 }

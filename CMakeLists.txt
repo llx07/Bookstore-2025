@@ -24,17 +24,23 @@ execute_process(
         OUTPUT_QUIET
         ERROR_QUIET
 )
-
+set(MAIN_SOURCES
+        src/BooksManager.cpp
+        src/UsersManager.cpp
+        src/Session.cpp
+        #        src/Commands/UserCommands.cpp
+)
+set(TEST_SOURCES
+        tests/testMemoryRiver.cpp
+        tests/testBlockList.cpp
+        tests/testUtils.cpp
+        tests/testBooksManager.cpp
+        tests/testValidator.cpp
+        tests/testUsersManager.cpp
+)
 if (GIT_CONNECTION_STATUS EQUAL 0)
     FetchContent_MakeAvailable(Catch2)
-    set(TEST_SOURCES
-            tests/testMemoryRiver.cpp
-            tests/testBlockList.cpp
-            src/BooksManager.cpp
-            tests/testUtils.cpp
-            tests/testBooksManager.cpp
-    )
-    add_executable(unit_tests ${TEST_SOURCES})
+    add_executable(unit_tests ${TEST_SOURCES} ${MAIN_SOURCES})
     target_link_libraries(unit_tests PRIVATE Catch2::Catch2WithMain)
     include(CTest)
     include(Catch)

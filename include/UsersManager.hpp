@@ -19,8 +19,9 @@ struct User {
     USERNAME_T username{};
     PASSWORD_T password{};
     int privilege;
+    int login_count;
 
-    User() : privilege(0) {
+    User() : privilege(0), login_count(false) {
         userid.fill(0);
         username.fill(0);
         password.fill(0);
@@ -36,6 +37,10 @@ public:
     // Disables copy and assignment for singleton class.
     UsersManager(const UsersManager&) = delete;
     UsersManager& operator=(const UsersManager&) = delete;
+
+    int get_login_count(const User::USERID_T& userid);
+    // Modifies login count by k.
+    void modify_login_count(const User::USERID_T& userid, int k);
 
     // Returns true if user with userid exists
     bool userid_exists(const User::USERID_T& userid);
