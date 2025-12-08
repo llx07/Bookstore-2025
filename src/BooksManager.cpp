@@ -80,6 +80,7 @@ int BooksManager::get_id_by_ISBN(const Book::ISBN_T& ISBN) {
 }
 void BooksManager::remove_data(const Book::ISBN_T& ISBN) {
     int id = get_id_by_ISBN(ISBN);
+    assert(id);
     Book book;
     main_data.read(book, id);
     isbn_index.erase(book.ISBN, id);
@@ -89,9 +90,11 @@ void BooksManager::remove_data(const Book::ISBN_T& ISBN) {
     for (const auto& keyword : keywords_list) {
         keyword_index.erase(util::to_array<Book::KEYWORD_T>(keyword), id);
     }
+    main_data.erase(id);
 }
 void BooksManager::write_data(const Book& book) {
     // XXX(llx) maybe we should check if the isbn already exist?
+    assert(!get_id_by_ISBN(book.ISBN));
     int id = main_data.write(book);
     isbn_index.insert(book.ISBN, id);
     book_name_index.insert(book.book_name, id);
