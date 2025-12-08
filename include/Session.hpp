@@ -16,6 +16,7 @@ public:
     int get_privilege();
     void login_push(const User::USERID_T& userid);
     void login_pop();
+    bool login_empty() const;
     void select_book(int bookID);
     static bool is_loging_in(const User::USERID_T& userid);
 

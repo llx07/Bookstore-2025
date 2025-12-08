@@ -13,11 +13,13 @@ void Session::login_push(const User::USERID_T& userid) {
     users_manager.modify_login_count(userid, 1);
     login_stack.emplace(userid, 0);
 }
+
 void Session::login_pop() {
     assert(!login_stack.empty());
     users_manager.modify_login_count(login_stack.top().userid, -1);
     login_stack.pop();
 }
+bool Session::login_empty() const { return login_stack.empty(); }
 void Session::select_book(int bookID) {
     assert(!login_stack.empty());
     login_stack.top().book_selected = bookID;
