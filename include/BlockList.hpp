@@ -13,6 +13,87 @@
 
 template <class Key, class T>
 class Blocklist {
+public:
+    void initialise(const std::string& file_name) { file.initialise(file_name); }
+    void insert(const Key& key, const T& value) {
+        if (!get_first_head()) {  // the blocklist is empty
+            int pos = allocate_new_block();
+            set_first_head(pos);
+            insert_in_block(pos, key, value);
+            return;
+        }
+        auto elem = KeyValuePair{key, value};
+        int block_now = get_first_head();
+        while (true) {
+            if (get_count(block_now) == 0 || !get_next_head(block_now)) break;
+            if (get_max_elem(block_now) >= elem) break;
+            block_now = get_next_head(block_now);
+        }
+        insert_in_block(block_now, key, value);
+        if (get_count(block_now) >= BLOCK_CAPACITY) {
+            split_block(block_now);
+        }
+    }
+    void erase(const Key& key, const T& value) {
+        if (!get_first_head()) return;  // the block list is empty
+
+        auto elem = KeyValuePair{key, value};
+        int block_now = get_first_head();
+
+        while (block_now) {
+            if (get_count(block_now) == 0 || get_max_elem(block_now) < elem) {
+                block_now = get_next_head(block_now);
+                continue;
+            }
+            if (get_max_elem(block_now) >= elem) {
+                break;
+            }
+        }
+        if (!block_now) return;
+        // elem may be in this block
+        erase_in_block(block_now, key, value);
+
+        int pre = get_prev_head(block_now);
+        int nxt = get_next_head(block_now);
+
+        if (pre && can_merge(pre, block_now)) {
+            merge_block(pre, block_now);
+        } else if (nxt && can_merge(block_now, nxt)) {
+            merge_block(block_now, nxt);
+        }
+    }
+    std::vector<T> query(const Key& key) {
+        std::vector<T> results;
+
+        if (!get_first_head()) return results;  // the block list is empty
+
+        int block_now = get_first_head();
+        // skip useless blocks
+        while (block_now) {
+            if (get_count(block_now) == 0 || get_max_elem(block_now).first < key) {
+                block_now = get_next_head(block_now);
+                continue;
+            }
+            if (get_max_elem(block_now).first >= key) {
+                break;
+            }
+        }
+        if (!block_now) return results;  // find no key
+        while (block_now) {
+            if (get_count(block_now) == 0) {
+                block_now = get_next_head(block_now);
+                continue;
+            }
+            if (get_min_elem(block_now).first > key) break;
+            auto results_in_this_block = extract_in_block(block_now, key);
+            for (auto& value : results_in_this_block) {
+                results.push_back(value);
+            }
+            block_now = get_next_head(block_now);
+        }
+        return results;
+    }
+
 private:
     static constexpr int BLOCK_CAPACITY = 512;
     struct KeyValuePair {
@@ -21,9 +102,9 @@ private:
         auto operator<=>(const KeyValuePair&) const = default;
     };
     struct Block {
-        int count;       // the number of elements in the block
-        int prev_head;   // the index of the previous node
-        int next_head;   // the index of next node, in file 'head'
+        int count;      // the number of elements in the block
+        int prev_head;  // the index of the previous node
+        int next_head;  // the index of next node, in file 'head'
         KeyValuePair min_elem;
         KeyValuePair max_elem;
         // one additional space for splitting block afterward
@@ -44,12 +125,12 @@ private:
     void set_##MEMBER(int index, const decltype(Block::MEMBER)& val) { \
         if (!index) return;                                            \
         file.update(val, index, offsetof(Block, MEMBER));              \
-    }                                                                     \
+    }                                                                  \
     decltype(Block::MEMBER) get_##MEMBER(int index) {                  \
         assert(index);                                                 \
         decltype(Block::MEMBER) val;                                   \
         file.read(val, index, offsetof(Block, MEMBER));                \
-        return val;                                                       \
+        return val;                                                    \
     }
 
     /* getter and setter of head node */
@@ -162,87 +243,6 @@ private:
             if (k == key) {
                 results.push_back(v);
             }
-        }
-        return results;
-    }
-
-public:
-    void initialise(const std::string& file_name) { file.initialise(file_name); }
-    void insert(const Key& key, const T& value) {
-        if (!get_first_head()) {  // the blocklist is empty
-            int pos = allocate_new_block();
-            set_first_head(pos);
-            insert_in_block(pos, key, value);
-            return;
-        }
-        auto elem = KeyValuePair{key, value};
-        int block_now = get_first_head();
-        while (true) {
-            if (get_count(block_now) == 0 || !get_next_head(block_now)) break;
-            if (get_max_elem(block_now) >= elem) break;
-            block_now = get_next_head(block_now);
-        }
-        insert_in_block(block_now, key, value);
-        if (get_count(block_now) >= BLOCK_CAPACITY) {
-            split_block(block_now);
-        }
-    }
-    void erase(const Key& key, const T& value) {
-        if (!get_first_head()) return;  // the block list is empty
-
-        auto elem = KeyValuePair{key, value};
-        int block_now = get_first_head();
-
-        while (block_now) {
-            if (get_count(block_now) == 0 || get_max_elem(block_now) < elem) {
-                block_now = get_next_head(block_now);
-                continue;
-            }
-            if (get_max_elem(block_now) >= elem) {
-                break;
-            }
-        }
-        if (!block_now) return;
-        // elem may be in this block
-        erase_in_block(block_now, key, value);
-
-        int pre = get_prev_head(block_now);
-        int nxt = get_next_head(block_now);
-
-        if (pre && can_merge(pre, block_now)) {
-            merge_block(pre, block_now);
-        } else if (nxt && can_merge(block_now, nxt)) {
-            merge_block(block_now, nxt);
-        }
-    }
-    std::vector<T> query(const Key& key) {
-        std::vector<T> results;
-
-        if (!get_first_head()) return results;  // the block list is empty
-
-        int block_now = get_first_head();
-        // skip useless blocks
-        while (block_now) {
-            if (get_count(block_now) == 0 || get_max_elem(block_now).first < key) {
-                block_now = get_next_head(block_now);
-                continue;
-            }
-            if (get_max_elem(block_now).first >= key) {
-                break;
-            }
-        }
-        if (!block_now) return results;  // find no key
-        while (block_now) {
-            if (get_count(block_now) == 0) {
-                block_now = get_next_head(block_now);
-                continue;
-            }
-            if (get_min_elem(block_now).first > key) break;
-            auto results_in_this_block = extract_in_block(block_now, key);
-            for (auto& value : results_in_this_block) {
-                results.push_back(value);
-            }
-            block_now = get_next_head(block_now);
         }
         return results;
     }
