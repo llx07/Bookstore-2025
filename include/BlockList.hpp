@@ -24,8 +24,10 @@ public:
     void insert(const Key& key, const T& value);
     // Erases (key, value). Do nothing if (key, value) doesn't exist.
     void erase(const Key& key, const T& value);
-    // Returns all values with the given key. Returnss empty vectors if no such value exists.
+    // Returns all values with the given key. Returns empty vectors if no such value exists.
     std::vector<T> query(const Key& key);
+    // Returns all values in this.
+    std::vector<T> query_all();
 
 private:
     // The maximum number of (key, value) that can be stored in a single block
@@ -182,6 +184,20 @@ std::vector<T> BlockList<Key, T>::query(const Key& key) {
         auto results_in_this_block = extract_in_block(block_now, key);
         for (auto& value : results_in_this_block) {
             results.push_back(value);
+        }
+        block_now = get_next_head(block_now);
+    }
+    return results;
+}
+template <class Key, class T>
+std::vector<T> BlockList<Key, T>::query_all() {
+    std::vector<T> results;
+    if (!get_first_head()) return results;  // the block list is empty
+    int block_now = get_first_head();
+    while (block_now) {
+        const auto& block = get_block(block_now);
+        for (int i = 0; i < block.count; i++) {
+            results.push_back(block.data[i].second);
         }
         block_now = get_next_head(block_now);
     }

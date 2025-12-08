@@ -105,3 +105,20 @@ TEST_CASE("BlockList Reopen", "[BlockList]") {
         REQUIRE(result == data);
     }
 }
+
+TEST_CASE("BlockList Query All", "[BlockList]") {
+    std::filesystem::remove("data");
+    BlockList<int, int> blocklist;
+    blocklist.initialise("data");
+    std::vector<int> data;
+    const int N = 10000;
+    std::mt19937 gen{14514};
+    for (int i = 0; i < N; i++) {
+        data.push_back(gen());
+    }
+    for (auto v : data) blocklist.insert(gen(), v);
+    std::ranges::sort(data);
+    auto result = blocklist.query_all();
+    std::ranges::sort(result);
+    REQUIRE(result == data);
+}
