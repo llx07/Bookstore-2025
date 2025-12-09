@@ -44,7 +44,7 @@ static long long parsePrice(const std::string& token) {
     expect(token).consistedOf(NUMERIC_DOT);
     expect(token.size()).le(13);
     long long value = util::toDecimal(token);
-    expect(value).ge(1);
+    expect(value).ge(0);
     return value;
 }
 
@@ -182,7 +182,10 @@ auto handleMODIFY(const std::vector<std::string>& tokens) -> std::unique_ptr<Com
 // import [Quantity] [TotalCost]
 auto handleIMPORT(const std::vector<std::string>& tokens) -> std::unique_ptr<Command> {
     if (tokens.size() == 3) {
-        return std::make_unique<ImportCommand>(parseQuantity(tokens[1]), parsePrice(tokens[2]));
+        int quantity = parseQuantity(tokens[1]);
+        long long total_cost = parsePrice(tokens[2]);
+        expect(total_cost).ge(1);
+        return std::make_unique<ImportCommand>(quantity, total_cost);
     }
     throw ParseException("import error: incorrect number of arg");
 }
