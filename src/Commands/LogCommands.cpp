@@ -4,6 +4,9 @@
 
 #include "Utils.hpp"
 void ShowFinanceCommand::execute(Session& session) {
+    if (session.get_privilege() < 7) {
+        throw ExecutionException("show finance error: privilege not enough to operate.");
+    }
     if (count.has_value() && count == 0) {
         session.out_stream << "\n";
         return;
