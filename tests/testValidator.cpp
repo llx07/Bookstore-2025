@@ -34,3 +34,31 @@ TEST_CASE("Validator Custom Function", "[Validator]") {
     }),
                       ExpectException);
 }
+
+TEST_CASE("Validator Convert to Int", "[Validator]") {
+    REQUIRE(expect(std::string{"0"}).toInt() == 0);
+    REQUIRE(expect(std::string{"123"}).toInt() == 123);
+    REQUIRE(expect(std::string{"-123"}).toInt() == -123);
+    REQUIRE(expect(std::string{"12300"}).toInt() == 12300);
+    REQUIRE_THROWS(expect(std::string{"abc"}).toInt());
+    REQUIRE_THROWS(expect(std::string{"123456789132"}).toInt());
+    REQUIRE_THROWS(expect(std::string{"0123"}).toInt());
+}
+
+TEST_CASE("Validator Convert to Decimal", "[Validator]") {
+    REQUIRE(expect(std::string{"0"}).toDecimal() == 0);
+    REQUIRE(expect(std::string{"1"}).toDecimal() == 100);
+    REQUIRE(expect(std::string{"1.2"}).toDecimal() == 120);
+    REQUIRE(expect(std::string{"12.34"}).toDecimal() == 1234);
+    REQUIRE(expect(std::string{"0.34"}).toDecimal() == 34);
+    REQUIRE_THROWS(expect(std::string{"1."}).toDecimal());
+    REQUIRE_THROWS(expect(std::string{".1"}).toDecimal());
+    REQUIRE_THROWS(expect(std::string{"00.1"}).toDecimal());
+    REQUIRE_THROWS(expect(std::string{"01.23"}).toDecimal());
+    REQUIRE_THROWS(expect(std::string{"1.234"}).toDecimal());
+    REQUIRE_THROWS(expect(std::string{"1.abc"}).toDecimal());
+    REQUIRE_THROWS(expect(std::string{"hello"}).toDecimal());
+    REQUIRE_THROWS(expect(std::string{"hello.5"}).toDecimal());
+    REQUIRE_THROWS(expect(std::string{"1.."}).toDecimal());
+    REQUIRE_THROWS(expect(std::string{"1.20.2"}).toDecimal());
+}

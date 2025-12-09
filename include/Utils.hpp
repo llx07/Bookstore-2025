@@ -29,7 +29,9 @@ T to_array(const std::string& s) {
                   "T must be std::array<char, N>");
 
     constexpr size_t CAPACITY = std::tuple_size_v<T>;
-    assert(s.size() < CAPACITY);
+    if (s.size() >= CAPACITY) {
+        throw std::out_of_range("String too long");
+    }
 
     T result;
     result.fill(0);
