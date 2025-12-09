@@ -10,6 +10,7 @@ void SwitchUserCommand::execute(Session& session) {
     }
     const User& user = session.users_manager.get_user_by_userid(userid);
     if (password == std::nullopt) {  // no password provided
+        // FIXME(llx) ambiguous meaning of “高于”
         if (session.get_privilege() <= user.privilege) {
             throw ExecutionException("su error: privilege not enough to omit password.");
         }

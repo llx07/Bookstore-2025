@@ -6,7 +6,7 @@
 #include "UsersManager.hpp"
 #include "Utils.hpp"
 
-void setup() {
+static void setup() {
     BooksManager::getInstance().reset();
     UsersManager::getInstance().reset();
 

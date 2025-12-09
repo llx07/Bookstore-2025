@@ -20,9 +20,13 @@ void Session::login_pop() {
     login_stack.pop();
 }
 bool Session::login_empty() const { return login_stack.empty(); }
-void Session::select_book(int bookID) {
+void Session::set_selected_book(int bookID) {
     assert(!login_stack.empty());
     login_stack.top().book_selected = bookID;
+}
+int Session::get_selected_book() {
+    assert(!login_stack.empty());
+    return login_stack.top().book_selected;
 }
 bool Session::is_logged_in(const User::USERID_T& userid) {
     return users_manager.get_login_count(userid) > 0;

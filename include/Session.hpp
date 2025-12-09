@@ -17,7 +17,8 @@ public:
     void login_push(const User::USERID_T& userid);
     void login_pop();
     bool login_empty() const;
-    void select_book(int bookID);
+    void set_selected_book(int bookID);
+    int get_selected_book();
     static bool is_logged_in(const User::USERID_T& userid);
 
 private:

@@ -29,6 +29,7 @@ set(MAIN_SOURCES
         src/UsersManager.cpp
         src/Session.cpp
         src/Commands/UserCommands.cpp
+        src/Commands/BookCommands.cpp
 )
 set(TEST_SOURCES
         tests/testMemoryRiver.cpp
@@ -38,6 +39,7 @@ set(TEST_SOURCES
         tests/testValidator.cpp
         tests/testUsersManager.cpp
         tests/testUserCommands.cpp
+        tests/testBookCommands.cpp
 )
 if (GIT_CONNECTION_STATUS EQUAL 0)
     FetchContent_MakeAvailable(Catch2)
