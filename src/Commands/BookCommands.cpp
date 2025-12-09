@@ -52,7 +52,6 @@ void BuyCommand::execute(Session& session) {
         throw ExecutionException("buy error: book with ISBN doesn't exist");
     }
     auto book = result.front();
-    // FIXME(llx) ambiguous description: can we buy book beyond quantity?
     if (book.quantity < quantity) {
         throw ExecutionException("buy error: quantity is more than quantity in storage");
     }
