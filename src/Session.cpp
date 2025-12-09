@@ -32,3 +32,8 @@ int Session::get_selected_book() {
 bool Session::is_logged_in(const User::USERID_T& userid) {
     return users_manager.get_login_count(userid) > 0;
 }
+Session::~Session() {
+    while (!login_stack.empty()) {
+        login_pop();
+    }
+}

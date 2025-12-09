@@ -22,6 +22,7 @@ public:
     void set_selected_book(int bookID);
     int get_selected_book();
     static bool is_logged_in(const User::USERID_T& userid);
+    ~Session();
 
 private:
     struct LoginState {
