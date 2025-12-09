@@ -115,6 +115,7 @@ auto handleSHOW(const std::vector<std::string>& tokens) -> std::unique_ptr<Comma
         } else {
             throw ParseException("show error: invalid option");
         }
+        return result;
     }
     throw ParseException("show error: incorrect arg number.");
 }
