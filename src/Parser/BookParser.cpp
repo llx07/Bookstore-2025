@@ -84,7 +84,7 @@ static std::pair<Option, std::string> parseOption(const std::string& token) {
         expect(token.substr(10, token.size() - 10 - 1)).consistedOf(PRINTABLE_WITHOUT_QUOTES);
         return std::make_pair(Option::KEYWORD, token.substr(10, token.size() - 10 - 1));
     }
-    if (token.size() >= 10 && token.substr(1, 5) == "price") {
+    if (token.size() >= 8 && token.substr(1, 5) == "price") {
         // -price=123.456
         // 0123456789
         expect(token[6]).toBe('=');
