@@ -27,7 +27,7 @@ std::pair<long long, long long> LogManager::get_finance_log(int cnt) {
         if (value > 0) {
             income += value;
         } else {
-            expense += value;
+            expense -= value;
         }
     }
     return std::make_pair(income, expense);
