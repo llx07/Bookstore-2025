@@ -102,8 +102,9 @@ void BooksManager::remove_data(const Book::ISBN_T& ISBN) {
     main_data.erase(id);
 }
 void BooksManager::write_data(const Book& book) {
-    // XXX(llx) maybe we should check if the isbn already exist?
-    assert(!get_id_by_ISBN(book.ISBN));
+    if (get_id_by_ISBN(book.ISBN)) {
+        throw std::runtime_error("ISBN Already Exists");
+    }
     int id = main_data.write(book);
     isbn_index.insert(book.ISBN, id);
     book_name_index.insert(book.book_name, id);
