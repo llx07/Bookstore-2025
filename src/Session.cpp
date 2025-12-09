@@ -2,6 +2,7 @@
 
 BooksManager& Session::books_manager = BooksManager::getInstance();
 UsersManager& Session::users_manager = UsersManager::getInstance();
+LogManager& Session::log_manager = LogManager::getInstance();
 
 Session::Session(std::ostream& os) : out_stream(os) {}
 

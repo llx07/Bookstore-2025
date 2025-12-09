@@ -5,12 +5,12 @@ project(Bookstore)
 set(CMAKE_CXX_STANDARD 20)
 
 # solving the problem 2967
-add_executable(code src/P2967.cpp)
+#add_executable(code src/P2967.cpp)
 
 include_directories(
         "${PROJECT_SOURCE_DIR}/include"
 )
-add_compile_options(-g)
+#add_compile_options(-g)
 
 Include(FetchContent)
 FetchContent_Declare(
@@ -24,12 +24,19 @@ execute_process(
         OUTPUT_QUIET
         ERROR_QUIET
 )
+
 set(MAIN_SOURCES
         src/BooksManager.cpp
         src/UsersManager.cpp
         src/Session.cpp
         src/Commands/UserCommands.cpp
         src/Commands/BookCommands.cpp
+        src/Commands/LogCommands.cpp
+        src/Parser/Parser.cpp
+        src/Parser/UserParser.cpp
+        src/Parser/BookParser.cpp
+        src/Parser/LogParser.cpp
+        src/LogManager.cpp
 )
 set(TEST_SOURCES
         tests/testMemoryRiver.cpp
@@ -41,6 +48,9 @@ set(TEST_SOURCES
         tests/testUserCommands.cpp
         tests/testBookCommands.cpp
 )
+
+add_executable(code ${MAIN_SOURCES} src/main.cpp)
+
 if (GIT_CONNECTION_STATUS EQUAL 0)
     FetchContent_MakeAvailable(Catch2)
     add_executable(unit_tests ${TEST_SOURCES} ${MAIN_SOURCES})

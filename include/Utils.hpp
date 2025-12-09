@@ -131,5 +131,9 @@ inline long long toDecimal(const std::string& value) {
     return integer_value * 100 + decimal_value;
 }
 
+inline void outputDecimal(std::ostream& out, long long val) {
+    out << val / 100 << "." << std::setw(2) << std::setfill('0') << val % 100;
+}
+
 };  // namespace util
 #endif  // BOOKSTORE_UTILS_HPP

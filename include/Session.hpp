@@ -5,12 +5,14 @@
 #include <stack>
 
 #include "BooksManager.hpp"
+#include "LogManager.hpp"
 #include "UsersManager.hpp"
 
 class Session {
 public:
     static BooksManager& books_manager;
     static UsersManager& users_manager;
+    static LogManager& log_manager;
     std::ostream& out_stream;
     explicit Session(std::ostream& os = std::cout);
     int get_privilege();
