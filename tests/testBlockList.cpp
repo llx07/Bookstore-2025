@@ -118,7 +118,7 @@ TEST_CASE("BlockList Query All", "[BlockList]") {
     }
     for (auto v : data) blocklist.insert(gen(), v);
     std::ranges::sort(data);
-    auto result = blocklist.query_all();
+    auto result = blocklist.queryAll();
     std::ranges::sort(result);
     REQUIRE(result == data);
 }

@@ -42,30 +42,30 @@ public:
     BooksManager& operator=(const BooksManager&) = delete;
     // Searches for books with given queries. Return books in the order of ascending ISBN.
     // Returns an empty vector if no book found.
-    std::vector<Book> get_books_with_ISBN(const Book::ISBN_T& ISBN);
-    std::vector<Book> get_books_with_name(const Book::BOOKNAME_T& name);
-    std::vector<Book> get_books_with_author(const Book::AUTHOR_T& author);
-    std::vector<Book> get_books_with_keyword(const Book::KEYWORD_T& keyword);
-    std::vector<Book> get_all_books();
+    std::vector<Book> getBooksWithISBN(const Book::ISBN_T& ISBN);
+    std::vector<Book> getBooksWithName(const Book::BOOKNAME_T& name);
+    std::vector<Book> getBooksWithAuthor(const Book::AUTHOR_T& author);
+    std::vector<Book> getBooksWithKeyword(const Book::KEYWORD_T& keyword);
+    std::vector<Book> getAllBooks();
 
     // Creates a new book with only the info of ISBN.
     // The ISBN SHALL not exist before.
-    void create_book(const Book::ISBN_T& ISBN);
+    void createBook(const Book::ISBN_T& ISBN);
 
     // Modify the data of the book with data_new
-    void modify_book_data(const Book::ISBN_T& ISBN_before, const Book& data_new);
-    void import_book(const Book::ISBN_T& ISBN, int quantity);
+    void modifyBookData(const Book::ISBN_T& ISBN_before, const Book& data_new);
+    void importBook(const Book::ISBN_T& ISBN, int quantity);
     // Returns true if the operation is success.
-    bool buy_book(const Book::ISBN_T& ISBN, int quantity);
+    bool buyBook(const Book::ISBN_T& ISBN, int quantity);
 
     // Helper function for testing.
     void reset();
     // get a book by id
-    Book get_book_by_id(int id);
+    Book getBookById(int id);
     // Helper function for converting ids into books.
-    std::vector<Book> get_books_by_ids(const std::vector<int>& ids);
+    std::vector<Book> getBooksByIds(const std::vector<int>& ids);
     // Returns the id of a book by ISBN. Returns 0 if no such book exists.
-    int get_id_by_ISBN(const Book::ISBN_T& ISBN);
+    int getIdByISBN(const Book::ISBN_T& ISBN);
 
 private:
     // The primary data for all books
@@ -78,9 +78,9 @@ private:
     BlockList<Book::KEYWORD_T, int> keyword_index;
 
     // Helper function for erasing all data and indexes of the book
-    void remove_data(const Book::ISBN_T& ISBN);
+    void removeData(const Book::ISBN_T& ISBN);
     // Helper function for writing all data and indexes of a book.
-    void write_data(const Book& book);
+    void writeData(const Book& book);
     BooksManager();
     ~BooksManager() = default;
 };

@@ -1,6 +1,8 @@
-# 书店管理系统
+Z@# 书店管理系统
 
 SJTU ACM 班 2025 级程序设计课程大作业
+
+TODO: 将所有函数修改成小驼峰。
 
 [![codecov](https://codecov.io/gh/llx07/Bookstore-2025/graph/badge.svg?token=561L54PW5M)](https://codecov.io/gh/llx07/Bookstore-2025)
 

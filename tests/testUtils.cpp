@@ -46,13 +46,13 @@ TEST_CASE("util::split", "[Utils][split]") {
 
 TEST_CASE("util::to_array", "[Utils][to_array]") {
     SECTION("Basic Usage") {
-        auto result = util::to_array<std::array<char, 10>>("hello");
+        auto result = util::toArray<std::array<char, 10>>("hello");
         REQUIRE(result ==
                 std::array<char, 10>{'h', 'e', 'l', 'l', 'o', '\0', '\0', '\0', '\0', '\0'});
     }
 
     SECTION("Empty string") {
-        auto result = util::to_array<std::array<char, 5>>(std::string{});
+        auto result = util::toArray<std::array<char, 5>>(std::string{});
         REQUIRE(result == std::array<char, 5>{'\0', '\0', '\0', '\0', '\0'});
     }
 }

@@ -24,7 +24,7 @@ inline std::vector<std::string> split(const std::string& s, char delim = '|') {
 // template arguments:
 //   T: the type of std::array<char, N>;
 template <typename T>
-T to_array(const std::string& s) {
+T toArray(const std::string& s) {
     static_assert(std::is_same_v<T, std::array<char, std::tuple_size_v<T>>>,
                   "T must be std::array<char, N>");
 

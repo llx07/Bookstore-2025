@@ -38,22 +38,22 @@ public:
     UsersManager(const UsersManager&) = delete;
     UsersManager& operator=(const UsersManager&) = delete;
 
-    int get_login_count(const User::USERID_T& userid);
+    int getLoginCount(const User::USERID_T& userid);
     // Modifies login count by k.
-    void modify_login_count(const User::USERID_T& userid, int k);
+    void modifyLoginCount(const User::USERID_T& userid, int k);
 
     // Returns true if user with userid exists
-    bool userid_exists(const User::USERID_T& userid);
+    bool useridExists(const User::USERID_T& userid);
     // Returns the user with userid.
-    User get_user_by_userid(const User::USERID_T& userid);
+    User getUserByUserid(const User::USERID_T& userid);
     // Returns true if the password is correct for userid.
-    bool is_password_correct(const User::USERID_T& userid, const User::PASSWORD_T& password);
+    bool isPasswordCorrect(const User::USERID_T& userid, const User::PASSWORD_T& password);
     // Modifies the password of userid to new_password.
-    void modify_password(const User::USERID_T& userid, const User::PASSWORD_T& new_password);
+    void modifyPassword(const User::USERID_T& userid, const User::PASSWORD_T& new_password);
     // Adds a new user.
-    void add_user(const User& user);
+    void addUser(const User& user);
     // Erases the user with userid given.
-    void erase_user(const User::USERID_T& userid);
+    void eraseUser(const User::USERID_T& userid);
 
     // Hack function for testing.
     void reset();

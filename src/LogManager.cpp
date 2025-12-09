@@ -5,16 +5,16 @@ LogManager& LogManager::getInstance() {
     static LogManager instance;
     return instance;
 }
-void LogManager::add_finance_log(long long value) {
+void LogManager::addFinanceLog(long long value) {
     int log_count;
-    finance_log.get_info(log_count, 1);
+    finance_log.getInfo(log_count, 1);
     finance_log.write(value);
     ++log_count;
-    finance_log.write_info(log_count, 1);
+    finance_log.writeInfo(log_count, 1);
 }
-std::pair<long long, long long> LogManager::get_finance_log(int cnt) {
+std::pair<long long, long long> LogManager::getFinanceLog(int cnt) {
     int log_count;
-    finance_log.get_info(log_count, 1);
+    finance_log.getInfo(log_count, 1);
     if (!cnt) cnt = log_count;
 
     if (log_count < cnt) {

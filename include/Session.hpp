@@ -15,13 +15,13 @@ public:
     static LogManager& log_manager;
     std::ostream& out_stream;
     explicit Session(std::ostream& os = std::cout);
-    int get_privilege();
-    void login_push(const User::USERID_T& userid);
-    void login_pop();
-    bool login_empty() const;
-    void set_selected_book(int bookID);
-    int get_selected_book();
-    static bool is_logged_in(const User::USERID_T& userid);
+    int getPrivilege();
+    void loginPush(const User::USERID_T& userid);
+    void loginPop();
+    bool loginEmpty() const;
+    void setSelectedBook(int bookID);
+    int getSelectedBook();
+    static bool isLoggedIn(const User::USERID_T& userid);
     ~Session();
 
 private:

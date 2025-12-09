@@ -10,43 +10,43 @@ BooksManager& BooksManager::getInstance() {
     static BooksManager instance;
     return instance;
 }
-std::vector<Book> BooksManager::get_books_with_ISBN(const Book::ISBN_T& ISBN) {
+std::vector<Book> BooksManager::getBooksWithISBN(const Book::ISBN_T& ISBN) {
     const std::vector<int> ids = isbn_index.query(ISBN);
-    return get_books_by_ids(ids);
+    return getBooksByIds(ids);
 }
-std::vector<Book> BooksManager::get_books_with_name(const Book::BOOKNAME_T& name) {
+std::vector<Book> BooksManager::getBooksWithName(const Book::BOOKNAME_T& name) {
     const std::vector<int> ids = book_name_index.query(name);
-    return get_books_by_ids(ids);
+    return getBooksByIds(ids);
 }
-std::vector<Book> BooksManager::get_books_with_author(const Book::AUTHOR_T& author) {
+std::vector<Book> BooksManager::getBooksWithAuthor(const Book::AUTHOR_T& author) {
     const std::vector<int> ids = author_index.query(author);
-    return get_books_by_ids(ids);
+    return getBooksByIds(ids);
 }
-std::vector<Book> BooksManager::get_books_with_keyword(const Book::KEYWORD_T& keyword) {
+std::vector<Book> BooksManager::getBooksWithKeyword(const Book::KEYWORD_T& keyword) {
     const std::vector<int> ids = keyword_index.query(keyword);
-    return get_books_by_ids(ids);
+    return getBooksByIds(ids);
 }
-std::vector<Book> BooksManager::get_all_books() {
-    const std::vector<int> ids = book_name_index.query_all();
-    return get_books_by_ids(ids);
+std::vector<Book> BooksManager::getAllBooks() {
+    const std::vector<int> ids = book_name_index.queryAll();
+    return getBooksByIds(ids);
 }
-void BooksManager::create_book(const Book::ISBN_T& ISBN) {
+void BooksManager::createBook(const Book::ISBN_T& ISBN) {
     Book new_book;
     new_book.ISBN = ISBN;
-    write_data(new_book);
+    writeData(new_book);
 }
-void BooksManager::modify_book_data(const Book::ISBN_T& ISBN_before, const Book& data_new) {
-    remove_data(ISBN_before);
-    write_data(data_new);
+void BooksManager::modifyBookData(const Book::ISBN_T& ISBN_before, const Book& data_new) {
+    removeData(ISBN_before);
+    writeData(data_new);
 }
-void BooksManager::import_book(const Book::ISBN_T& ISBN, int quantity_imported) {
-    int id = get_id_by_ISBN(ISBN);
+void BooksManager::importBook(const Book::ISBN_T& ISBN, int quantity_imported) {
+    int id = getIdByISBN(ISBN);
     int quantity_now;
     main_data.read(quantity_now, id, offsetof(Book, quantity));
     main_data.update(quantity_now + quantity_imported, id, offsetof(Book, quantity));
 }
-bool BooksManager::buy_book(const Book::ISBN_T& ISBN, int quantity_bought) {
-    int id = get_id_by_ISBN(ISBN);
+bool BooksManager::buyBook(const Book::ISBN_T& ISBN, int quantity_bought) {
+    int id = getIdByISBN(ISBN);
     int quantity_now;
     main_data.read(quantity_now, id, offsetof(Book, quantity));
     if (quantity_now < quantity_bought) {
@@ -64,13 +64,13 @@ void BooksManager::reset() {
     std::filesystem::remove("book_keyword_index");
     new (this) BooksManager();
 }
-Book BooksManager::get_book_by_id(int id) {
+Book BooksManager::getBookById(int id) {
     Book book_now;
     main_data.read(book_now, id);
     return book_now;
 }
 
-std::vector<Book> BooksManager::get_books_by_ids(const std::vector<int>& ids) {
+std::vector<Book> BooksManager::getBooksByIds(const std::vector<int>& ids) {
     std::vector<Book> books;
     for (const int id : ids) {
         Book book_now;
@@ -81,14 +81,14 @@ std::vector<Book> BooksManager::get_books_by_ids(const std::vector<int>& ids) {
     std::ranges::sort(books, {}, &Book::ISBN);
     return books;
 }
-int BooksManager::get_id_by_ISBN(const Book::ISBN_T& ISBN) {
+int BooksManager::getIdByISBN(const Book::ISBN_T& ISBN) {
     const std::vector<int> ids = isbn_index.query(ISBN);
     assert(ids.size() <= 1);
     if (ids.empty()) return 0;
     return ids[0];
 }
-void BooksManager::remove_data(const Book::ISBN_T& ISBN) {
-    int id = get_id_by_ISBN(ISBN);
+void BooksManager::removeData(const Book::ISBN_T& ISBN) {
+    int id = getIdByISBN(ISBN);
     assert(id);
     Book book;
     main_data.read(book, id);
@@ -97,12 +97,12 @@ void BooksManager::remove_data(const Book::ISBN_T& ISBN) {
     author_index.erase(book.author, id);
     auto keywords_list = util::split(book.keywords.data());
     for (const auto& keyword : keywords_list) {
-        keyword_index.erase(util::to_array<Book::KEYWORD_T>(keyword), id);
+        keyword_index.erase(util::toArray<Book::KEYWORD_T>(keyword), id);
     }
     main_data.erase(id);
 }
-void BooksManager::write_data(const Book& book) {
-    if (get_id_by_ISBN(book.ISBN)) {
+void BooksManager::writeData(const Book& book) {
+    if (getIdByISBN(book.ISBN)) {
         throw std::runtime_error("ISBN Already Exists");
     }
     int id = main_data.write(book);
@@ -111,7 +111,7 @@ void BooksManager::write_data(const Book& book) {
     author_index.insert(book.author, id);
     auto keywords_list = util::split(book.keywords.data());
     for (const auto& keyword : keywords_list) {
-        keyword_index.insert(util::to_array<Book::KEYWORD_T>(keyword), id);
+        keyword_index.insert(util::toArray<Book::KEYWORD_T>(keyword), id);
     }
 }
 

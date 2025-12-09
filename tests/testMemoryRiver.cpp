@@ -16,7 +16,7 @@ TEST_CASE("MemoryRiver Info Read/Write", "[MemoryRiver]") {
         MemoryRiver<int, N> mr("tmp_file");
         mr.initialise();
         for (int i = 1; i <= N; i++) {
-            mr.write_info(i * i, i);
+            mr.writeInfo(i * i, i);
         }
         pos = mr.write(200);
     }
@@ -27,7 +27,7 @@ TEST_CASE("MemoryRiver Info Read/Write", "[MemoryRiver]") {
         int tmp;
         for (int i = 1; i <= N; i++) {
             // std::cerr << "i = " << i << '\n';
-            mr.get_info(tmp, i);
+            mr.getInfo(tmp, i);
             // std::cerr << "data = " << tmp << '\n';
             REQUIRE(tmp == i * i);
         }
@@ -145,7 +145,7 @@ TEST_CASE("MemoryRiver Delete Multiple Times With Info", "[MemoryRiver]") {
 
         std::vector<int> pos;
         for (int i = 0; i < 100; i++) {
-            mr.write_info(i, i + 1);
+            mr.writeInfo(i, i + 1);
             pos.push_back(mr.write(i));
         }
 
@@ -170,7 +170,7 @@ TEST_CASE("MemoryRiver Delete Multiple Times With Info", "[MemoryRiver]") {
 
         for (unsigned i = 0; i < 100; i++) {
             int tmp;
-            mr.get_info(tmp, i + 1);
+            mr.getInfo(tmp, i + 1);
             REQUIRE(tmp == i);
             unsigned val;
             mr.read(val, pos[i]);

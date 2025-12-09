@@ -9,11 +9,11 @@
 
 static User::USERID_T parse_userid(const std::string& token) {
     expect(token).consistedOf(ALPHANUMERIC_UNDERSCORE);
-    return util::to_array<User::USERID_T>(token);
+    return util::toArray<User::USERID_T>(token);
 }
 static User::PASSWORD_T parse_password(const std::string& token) {
     expect(token).consistedOf(ALPHANUMERIC_UNDERSCORE);
-    return util::to_array<User::PASSWORD_T>(token);
+    return util::toArray<User::PASSWORD_T>(token);
 }
 static int parse_privilege(const std::string& token) {
     expect(token).consistedOf(NUMERIC);
@@ -23,7 +23,7 @@ static int parse_privilege(const std::string& token) {
 }
 static User::USERNAME_T parse_username(const std::string& token) {
     expect(token).consistedOf(PRINTABLE);
-    return util::to_array<User::USERNAME_T>(token);
+    return util::toArray<User::USERNAME_T>(token);
 }
 
 // su [UserID] ([Password])?

@@ -9,7 +9,7 @@ inline const std::string ALPHANUMERIC_UNDERSCORE =
     "abcdefghijklmnopqrstuvwxyz"
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "0123456789_";
-inline std::string generate_visible_ascii(char exclude = '\0') {
+inline std::string generateVisibleAscii(char exclude = '\0') {
     std::string result;
     for (char c = 32; c <= 126; ++c) {
         if (c == exclude) {
@@ -19,8 +19,8 @@ inline std::string generate_visible_ascii(char exclude = '\0') {
     }
     return result;
 }
-inline const std::string PRINTABLE = generate_visible_ascii();
-inline const std::string PRINTABLE_WITHOUT_QUOTES = generate_visible_ascii('"');
-inline const std::string PRINTABLE_WITHOUT_BAR = generate_visible_ascii('|');
+inline const std::string PRINTABLE = generateVisibleAscii();
+inline const std::string PRINTABLE_WITHOUT_QUOTES = generateVisibleAscii('"');
+inline const std::string PRINTABLE_WITHOUT_BAR = generateVisibleAscii('|');
 
 #endif  // BOOKSTORE_CHARSET_HPP

@@ -12,34 +12,34 @@ static void setup() {
     UsersManager::getInstance().reset();
 
     User user;
-    user.userid = util::to_array<User::USERID_T>("customer");
-    user.password = util::to_array<User::PASSWORD_T>("123");
+    user.userid = util::toArray<User::USERID_T>("customer");
+    user.password = util::toArray<User::PASSWORD_T>("123");
     user.privilege = 1;
-    UsersManager::getInstance().add_user(user);
+    UsersManager::getInstance().addUser(user);
 
-    user.userid = util::to_array<User::USERID_T>("salesman");
-    user.password = util::to_array<User::PASSWORD_T>("456");
+    user.userid = util::toArray<User::USERID_T>("salesman");
+    user.password = util::toArray<User::PASSWORD_T>("456");
     user.privilege = 3;
-    UsersManager::getInstance().add_user(user);
+    UsersManager::getInstance().addUser(user);
 
-    BooksManager::getInstance().create_book(util::to_array<Book::ISBN_T>("ISBN1"));
+    BooksManager::getInstance().createBook(util::toArray<Book::ISBN_T>("ISBN1"));
     Book book_data;
-    book_data.ISBN = util::to_array<Book::ISBN_T>("ISBN1");
-    book_data.book_name = util::to_array<Book::BOOKNAME_T>("Bookname");
-    book_data.author = util::to_array<Book::AUTHOR_T>("Author");
-    book_data.keywords = util::to_array<Book::KEYWORD_T>("KW1|KW2");
+    book_data.ISBN = util::toArray<Book::ISBN_T>("ISBN1");
+    book_data.book_name = util::toArray<Book::BOOKNAME_T>("Bookname");
+    book_data.author = util::toArray<Book::AUTHOR_T>("Author");
+    book_data.keywords = util::toArray<Book::KEYWORD_T>("KW1|KW2");
     book_data.price = 12345;
     book_data.quantity = 50;
-    BooksManager::getInstance().modify_book_data(util::to_array<Book::ISBN_T>("ISBN1"), book_data);
+    BooksManager::getInstance().modifyBookData(util::toArray<Book::ISBN_T>("ISBN1"), book_data);
 
-    BooksManager::getInstance().create_book(util::to_array<Book::ISBN_T>("ISBN2"));
-    book_data.ISBN = util::to_array<Book::ISBN_T>("ISBN2");
-    book_data.book_name = util::to_array<Book::BOOKNAME_T>("Bookname2");
-    book_data.author = util::to_array<Book::AUTHOR_T>("Author2");
-    book_data.keywords = util::to_array<Book::KEYWORD_T>("KW2|KW3");
+    BooksManager::getInstance().createBook(util::toArray<Book::ISBN_T>("ISBN2"));
+    book_data.ISBN = util::toArray<Book::ISBN_T>("ISBN2");
+    book_data.book_name = util::toArray<Book::BOOKNAME_T>("Bookname2");
+    book_data.author = util::toArray<Book::AUTHOR_T>("Author2");
+    book_data.keywords = util::toArray<Book::KEYWORD_T>("KW2|KW3");
     book_data.price = 782;
     book_data.quantity = 100;
-    BooksManager::getInstance().modify_book_data(util::to_array<Book::ISBN_T>("ISBN2"), book_data);
+    BooksManager::getInstance().modifyBookData(util::toArray<Book::ISBN_T>("ISBN2"), book_data);
 }
 
 TEST_CASE("BookCommands: SHOW command", "[BookCommands]") {
@@ -53,8 +53,8 @@ TEST_CASE("BookCommands: SHOW command", "[BookCommands]") {
                             Catch::Matchers::ContainsSubstring("privilege not enough to operate"));
     }
     SECTION("Show all books") {
-        session.login_push(util::to_array<User::USERID_T>("salesman"));
-        REQUIRE(session.get_privilege() == 3);
+        session.loginPush(util::toArray<User::USERID_T>("salesman"));
+        REQUIRE(session.getPrivilege() == 3);
         ShowCommand cmd;
         REQUIRE_NOTHROW(cmd.execute(session));
 
@@ -69,10 +69,10 @@ TEST_CASE("BookCommands: SHOW command", "[BookCommands]") {
         REQUIRE(lines[1] == "ISBN2\tBookname2\tAuthor2\tKW2|KW3\t7.82\t100");
     }
     SECTION("Show books with keyword") {
-        session.login_push(util::to_array<User::USERID_T>("salesman"));
-        REQUIRE(session.get_privilege() == 3);
+        session.loginPush(util::toArray<User::USERID_T>("salesman"));
+        REQUIRE(session.getPrivilege() == 3);
         ShowCommand cmd;
-        cmd.keyword = util::to_array<Book::KEYWORD_T>("KW2");
+        cmd.keyword = util::toArray<Book::KEYWORD_T>("KW2");
         REQUIRE_NOTHROW(cmd.execute(session));
 
         std::vector<std::string> lines;
@@ -86,10 +86,10 @@ TEST_CASE("BookCommands: SHOW command", "[BookCommands]") {
         REQUIRE(lines[1] == "ISBN2\tBookname2\tAuthor2\tKW2|KW3\t7.82\t100");
     }
     SECTION("Show books with Author") {
-        session.login_push(util::to_array<User::USERID_T>("salesman"));
-        REQUIRE(session.get_privilege() == 3);
+        session.loginPush(util::toArray<User::USERID_T>("salesman"));
+        REQUIRE(session.getPrivilege() == 3);
         ShowCommand cmd;
-        cmd.author = util::to_array<Book::AUTHOR_T>("Author2");
+        cmd.author = util::toArray<Book::AUTHOR_T>("Author2");
         REQUIRE_NOTHROW(cmd.execute(session));
 
         std::vector<std::string> lines;
@@ -108,28 +108,28 @@ TEST_CASE("BookCommands: BUY command", "[BookCommands]") {
     std::stringstream ss;
     Session session(ss);
     SECTION("Need login to use") {
-        BuyCommand cmd{util::to_array<Book::ISBN_T>("ISBN3"), 100};
+        BuyCommand cmd{util::toArray<Book::ISBN_T>("ISBN3"), 100};
         REQUIRE_THROWS_WITH(cmd.execute(session),
                             Catch::Matchers::ContainsSubstring("privilege not enough to operate"));
     }
     SECTION("IBSN not exist") {
-        session.login_push(util::to_array<User::USERID_T>("salesman"));
-        BuyCommand cmd{util::to_array<Book::ISBN_T>("ISBN3"), 100};
+        session.loginPush(util::toArray<User::USERID_T>("salesman"));
+        BuyCommand cmd{util::toArray<Book::ISBN_T>("ISBN3"), 100};
         REQUIRE_THROWS_WITH(cmd.execute(session),
                             Catch::Matchers::ContainsSubstring("ISBN doesn't exist"));
     }
     SECTION("Buy too much") {
-        session.login_push(util::to_array<User::USERID_T>("customer"));
-        BuyCommand cmd{util::to_array<Book::ISBN_T>("ISBN1"), 100};
+        session.loginPush(util::toArray<User::USERID_T>("customer"));
+        BuyCommand cmd{util::toArray<Book::ISBN_T>("ISBN1"), 100};
         REQUIRE_THROWS_WITH(cmd.execute(session),
                             Catch::Matchers::ContainsSubstring("more than quantity in storage"));
     }
     SECTION("Correct Usage") {
-        session.login_push(util::to_array<User::USERID_T>("customer"));
-        BuyCommand cmd{util::to_array<Book::ISBN_T>("ISBN1"), 50};
+        session.loginPush(util::toArray<User::USERID_T>("customer"));
+        BuyCommand cmd{util::toArray<Book::ISBN_T>("ISBN1"), 50};
         REQUIRE_NOTHROW(cmd.execute(session));
-        auto data = session.books_manager.get_id_by_ISBN(util::to_array<Book::ISBN_T>("ISBN1"));
-        auto book = session.books_manager.get_book_by_id(data);
+        auto data = session.books_manager.getIdByISBN(util::toArray<Book::ISBN_T>("ISBN1"));
+        auto book = session.books_manager.getBookById(data);
         REQUIRE(book.quantity == 0);
 
         std::vector<std::string> lines;
@@ -148,26 +148,26 @@ TEST_CASE("BookCommands: SELECT command", "[BookCommands]") {
     std::stringstream ss;
     Session session(ss);
     SECTION("Need privilege 3 to use") {
-        session.login_push(util::to_array<User::USERID_T>("customer"));
-        SelectCommand cmd{util::to_array<Book::ISBN_T>("ISBN3")};
+        session.loginPush(util::toArray<User::USERID_T>("customer"));
+        SelectCommand cmd{util::toArray<Book::ISBN_T>("ISBN3")};
         REQUIRE_THROWS_WITH(cmd.execute(session),
                             Catch::Matchers::ContainsSubstring("privilege not enough to operate"));
     }
     SECTION("Book Not Exists") {
-        session.login_push(util::to_array<User::USERID_T>("salesman"));
-        SelectCommand cmd{util::to_array<Book::ISBN_T>("ISBN3")};
+        session.loginPush(util::toArray<User::USERID_T>("salesman"));
+        SelectCommand cmd{util::toArray<Book::ISBN_T>("ISBN3")};
         REQUIRE_NOTHROW(cmd.execute(session));
-        int id = session.books_manager.get_id_by_ISBN(util::to_array<Book::ISBN_T>("ISBN3"));
+        int id = session.books_manager.getIdByISBN(util::toArray<Book::ISBN_T>("ISBN3"));
         REQUIRE(id != 0);
-        REQUIRE(session.get_selected_book() == id);
+        REQUIRE(session.getSelectedBook() == id);
     }
     SECTION("Book Exists") {
-        session.login_push(util::to_array<User::USERID_T>("salesman"));
-        int id = session.books_manager.get_id_by_ISBN(util::to_array<Book::ISBN_T>("ISBN2"));
+        session.loginPush(util::toArray<User::USERID_T>("salesman"));
+        int id = session.books_manager.getIdByISBN(util::toArray<Book::ISBN_T>("ISBN2"));
         REQUIRE(id != 0);
-        SelectCommand cmd{util::to_array<Book::ISBN_T>("ISBN2")};
+        SelectCommand cmd{util::toArray<Book::ISBN_T>("ISBN2")};
         REQUIRE_NOTHROW(cmd.execute(session));
-        REQUIRE(session.get_selected_book() == id);
+        REQUIRE(session.getSelectedBook() == id);
     }
 }
 
@@ -176,55 +176,55 @@ TEST_CASE("BookCommands: MODIFY", "[BooksCommands]") {
     std::stringstream ss;
     Session session(ss);
     SECTION("Need privilege 3 to use") {
-        session.login_push(util::to_array<User::USERID_T>("customer"));
+        session.loginPush(util::toArray<User::USERID_T>("customer"));
         ModifyCommand cmd{};
         REQUIRE_THROWS_WITH(cmd.execute(session),
                             Catch::Matchers::ContainsSubstring("privilege not enough to operate"));
     }
     SECTION("Not Selected") {
-        session.login_push(util::to_array<User::USERID_T>("salesman"));
+        session.loginPush(util::toArray<User::USERID_T>("salesman"));
         ModifyCommand cmd{};
         REQUIRE_THROWS_WITH(cmd.execute(session),
                             Catch::Matchers::ContainsSubstring("selected book is empty"));
     }
     SECTION("ISBN duplicate") {
-        session.login_push(util::to_array<User::USERID_T>("salesman"));
-        int id = session.books_manager.get_id_by_ISBN(util::to_array<Book::ISBN_T>("ISBN2"));
-        session.set_selected_book(id);
+        session.loginPush(util::toArray<User::USERID_T>("salesman"));
+        int id = session.books_manager.getIdByISBN(util::toArray<Book::ISBN_T>("ISBN2"));
+        session.setSelectedBook(id);
         ModifyCommand cmd{};
-        cmd.new_ISBN = util::to_array<Book::ISBN_T>("ISBN2");
+        cmd.new_ISBN = util::toArray<Book::ISBN_T>("ISBN2");
         REQUIRE_THROWS_WITH(cmd.execute(session),
                             Catch::Matchers::ContainsSubstring("ISBN mustn't be the same"));
     }
     SECTION("Empty modification") {
-        session.login_push(util::to_array<User::USERID_T>("salesman"));
-        int id = session.books_manager.get_id_by_ISBN(util::to_array<Book::ISBN_T>("ISBN2"));
-        session.set_selected_book(id);
+        session.loginPush(util::toArray<User::USERID_T>("salesman"));
+        int id = session.books_manager.getIdByISBN(util::toArray<Book::ISBN_T>("ISBN2"));
+        session.setSelectedBook(id);
         ModifyCommand cmd{};
         REQUIRE_NOTHROW(cmd.execute(session));
     }
     SECTION("Modify Price") {
-        session.login_push(util::to_array<User::USERID_T>("salesman"));
-        int id = session.books_manager.get_id_by_ISBN(util::to_array<Book::ISBN_T>("ISBN2"));
-        session.set_selected_book(id);
+        session.loginPush(util::toArray<User::USERID_T>("salesman"));
+        int id = session.books_manager.getIdByISBN(util::toArray<Book::ISBN_T>("ISBN2"));
+        session.setSelectedBook(id);
         ModifyCommand cmd{};
         cmd.new_price = 1000;
         REQUIRE_NOTHROW(cmd.execute(session));
 
-        auto data = session.books_manager.get_book_by_id(id);
+        auto data = session.books_manager.getBookById(id);
         REQUIRE(data.price == 1000);
     }
     SECTION("Modify ISBN") {
-        session.login_push(util::to_array<User::USERID_T>("salesman"));
-        int id = session.books_manager.get_id_by_ISBN(util::to_array<Book::ISBN_T>("ISBN2"));
-        session.set_selected_book(id);
+        session.loginPush(util::toArray<User::USERID_T>("salesman"));
+        int id = session.books_manager.getIdByISBN(util::toArray<Book::ISBN_T>("ISBN2"));
+        session.setSelectedBook(id);
         ModifyCommand cmd{};
-        cmd.new_ISBN = util::to_array<Book::ISBN_T>("ISBN3");
+        cmd.new_ISBN = util::toArray<Book::ISBN_T>("ISBN3");
         REQUIRE_NOTHROW(cmd.execute(session));
 
-        id = session.books_manager.get_id_by_ISBN(util::to_array<Book::ISBN_T>("ISBN2"));
+        id = session.books_manager.getIdByISBN(util::toArray<Book::ISBN_T>("ISBN2"));
         REQUIRE(id == 0);
-        id = session.books_manager.get_id_by_ISBN(util::to_array<Book::ISBN_T>("ISBN3"));
+        id = session.books_manager.getIdByISBN(util::toArray<Book::ISBN_T>("ISBN3"));
         REQUIRE(id != 0);
     }
 }
@@ -234,26 +234,26 @@ TEST_CASE("BookCommands: IMPORT command", "[BooksCommand]") {
     std::stringstream ss;
     Session session(ss);
     SECTION("privilege at least 3") {
-        session.login_push(util::to_array<User::USERID_T>("customer"));
+        session.loginPush(util::toArray<User::USERID_T>("customer"));
         ImportCommand cmd{100, 2000};
         REQUIRE_THROWS_WITH(cmd.execute(session),
                             Catch::Matchers::ContainsSubstring("privilege not enough to operate"));
     }
     SECTION("Not Selected") {
-        session.login_push(util::to_array<User::USERID_T>("salesman"));
+        session.loginPush(util::toArray<User::USERID_T>("salesman"));
         ImportCommand cmd{100, 2000};
         REQUIRE_THROWS_WITH(cmd.execute(session),
                             Catch::Matchers::ContainsSubstring("selected book is empty"));
     }
     SECTION("Modify Price") {
-        session.login_push(util::to_array<User::USERID_T>("salesman"));
-        int id = session.books_manager.get_id_by_ISBN(util::to_array<Book::ISBN_T>("ISBN2"));
-        auto data_bef = session.books_manager.get_book_by_id(id);
-        session.set_selected_book(id);
+        session.loginPush(util::toArray<User::USERID_T>("salesman"));
+        int id = session.books_manager.getIdByISBN(util::toArray<Book::ISBN_T>("ISBN2"));
+        auto data_bef = session.books_manager.getBookById(id);
+        session.setSelectedBook(id);
         ImportCommand cmd{100, 2000};
         REQUIRE_NOTHROW(cmd.execute(session));
 
-        auto data_aft = session.books_manager.get_book_by_id(id);
+        auto data_aft = session.books_manager.getBookById(id);
         REQUIRE(data_aft.quantity - data_bef.quantity == 100);
     }
 }

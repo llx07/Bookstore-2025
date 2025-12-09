@@ -6,34 +6,34 @@ LogManager& Session::log_manager = LogManager::getInstance();
 
 Session::Session(std::ostream& os) : out_stream(os) {}
 
-int Session::get_privilege() {
+int Session::getPrivilege() {
     if (login_stack.empty()) return 0;
-    return users_manager.get_user_by_userid(login_stack.top().userid).privilege;
+    return users_manager.getUserByUserid(login_stack.top().userid).privilege;
 }
-void Session::login_push(const User::USERID_T& userid) {
-    users_manager.modify_login_count(userid, 1);
+void Session::loginPush(const User::USERID_T& userid) {
+    users_manager.modifyLoginCount(userid, 1);
     login_stack.emplace(userid, 0);
 }
 
-void Session::login_pop() {
+void Session::loginPop() {
     assert(!login_stack.empty());
-    users_manager.modify_login_count(login_stack.top().userid, -1);
+    users_manager.modifyLoginCount(login_stack.top().userid, -1);
     login_stack.pop();
 }
-bool Session::login_empty() const { return login_stack.empty(); }
-void Session::set_selected_book(int bookID) {
+bool Session::loginEmpty() const { return login_stack.empty(); }
+void Session::setSelectedBook(int bookID) {
     assert(!login_stack.empty());
     login_stack.top().book_selected = bookID;
 }
-int Session::get_selected_book() {
+int Session::getSelectedBook() {
     assert(!login_stack.empty());
     return login_stack.top().book_selected;
 }
-bool Session::is_logged_in(const User::USERID_T& userid) {
-    return users_manager.get_login_count(userid) > 0;
+bool Session::isLoggedIn(const User::USERID_T& userid) {
+    return users_manager.getLoginCount(userid) > 0;
 }
 Session::~Session() {
     while (!login_stack.empty()) {
-        login_pop();
+        loginPop();
     }
 }

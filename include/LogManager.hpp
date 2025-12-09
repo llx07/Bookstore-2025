@@ -8,9 +8,9 @@ class LogManager {
 public:
     static LogManager& getInstance();
     // positive for income, negative for expense
-    void add_finance_log(long long value);
+    void addFinanceLog(long long value);
     // count must be greater than zero
-    std::pair<long long, long long> get_finance_log(int cnt = 0);
+    std::pair<long long, long long> getFinanceLog(int cnt = 0);
 
 private:
     LogManager();

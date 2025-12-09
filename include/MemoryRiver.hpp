@@ -23,9 +23,9 @@ public:
     // Initializes MemoryRiver. This function must be called before use of other functions.
     void initialise(const std::string& _file_name = "");
     // Gets the value of the n-th info (1-based).
-    void get_info(int& tmp, int n);
+    void getInfo(int& tmp, int n);
     // Writes tmp into the n-th info (1-based).
-    void write_info(int tmp, int n);
+    void writeInfo(int tmp, int n);
 
     // Writes t in to file. Returns an index for future operations.
     // The index retyrurned will always be a positive integer.
@@ -54,38 +54,38 @@ private:
     static constexpr int SIZEOF_T = sizeof(T);
 
     // Initializes a new file.
-    void init_file();
+    void initFile();
     // Opens the existing file.
-    void open_file();
+    void openFile();
     // Returns the next pointer for the free list.
-    int get_nxt(int index);
+    int getNext(int index);
     // Modifies the next pointer for the free list.
-    void write_nxt(int index, int val);
+    void writeNext(int index, int val);
 };
 
 template <class T, int info_len>
 MemoryRiver<T, info_len>::~MemoryRiver() {
-    write_info(count, -1);
-    write_info(free_head, 0);
+    writeInfo(count, -1);
+    writeInfo(free_head, 0);
     file.close();
 }
 template <class T, int info_len>
 void MemoryRiver<T, info_len>::initialise(const std::string& _file_name) {
     if (!_file_name.empty()) file_name = _file_name;
     if (!std::filesystem::exists(file_name)) {
-        init_file();
+        initFile();
     }
-    open_file();
+    openFile();
 }
 template <class T, int info_len>
-void MemoryRiver<T, info_len>::get_info(int& tmp, int n) {
+void MemoryRiver<T, info_len>::getInfo(int& tmp, int n) {
     if (n > info_len) return;
     assert(file.is_open());
     file.seekg(GLOBAL_OFFSET + (n - 1) * sizeof(int));
     file.read(reinterpret_cast<char*>(&tmp), sizeof(int));
 }
 template <class T, int info_len>
-void MemoryRiver<T, info_len>::write_info(int tmp, int n) {
+void MemoryRiver<T, info_len>::writeInfo(int tmp, int n) {
     if (n > info_len) return;
     assert(file.is_open());
     file.seekp(GLOBAL_OFFSET + (n - 1) * sizeof(int));
@@ -100,7 +100,7 @@ int MemoryRiver<T, info_len>::write(const T& t) {
         return ++count;
     }
     const int pos = free_head;
-    free_head = get_nxt(free_head);
+    free_head = getNext(free_head);
     file.seekp(GLOBAL_OFFSET + (info_len) * sizeof(int) + SIZEOF_T * (pos - 1));
     file.write(reinterpret_cast<const char*>(&t), SIZEOF_T);
     return pos;
@@ -132,12 +132,12 @@ void MemoryRiver<T, info_len>::read(U& u, const int index, const size_t offset) 
 template <class T, int info_len>
 void MemoryRiver<T, info_len>::erase(const int index) {
     assert(file.is_open());
-    write_nxt(index, free_head);
+    writeNext(index, free_head);
     free_head = index;
 }
 
 template <class T, int info_len>
-void MemoryRiver<T, info_len>::init_file() {
+void MemoryRiver<T, info_len>::initFile() {
     file.open(file_name, std::ios::out | std::ios::binary);
     int tmp = 0;
     for (int i = 0; i < info_len + SUPER_INFO_LEN; ++i)
@@ -145,20 +145,20 @@ void MemoryRiver<T, info_len>::init_file() {
     file.close();
 }
 template <class T, int info_len>
-void MemoryRiver<T, info_len>::open_file() {
+void MemoryRiver<T, info_len>::openFile() {
     file.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
-    get_info(count, -1);
-    get_info(free_head, 0);
+    getInfo(count, -1);
+    getInfo(free_head, 0);
 }
 template <class T, int info_len>
-int MemoryRiver<T, info_len>::get_nxt(int index) {
+int MemoryRiver<T, info_len>::getNext(int index) {
     int nxt;
     file.seekg(GLOBAL_OFFSET + (info_len) * sizeof(int) + SIZEOF_T * (index - 1));
     file.read(reinterpret_cast<char*>(&nxt), sizeof(int));
     return nxt;
 }
 template <class T, int info_len>
-void MemoryRiver<T, info_len>::write_nxt(int index, int val) {
+void MemoryRiver<T, info_len>::writeNext(int index, int val) {
     file.seekp(GLOBAL_OFFSET + (info_len) * sizeof(int) + SIZEOF_T * (index - 1));
     file.write(reinterpret_cast<const char*>(&val), sizeof(int));
 }

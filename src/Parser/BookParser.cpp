@@ -15,15 +15,15 @@
 // Token will not be empty.
 static Book::ISBN_T parseISBN(const std::string& token) {
     expect(token).consistedOf(PRINTABLE);
-    return util::to_array<Book::ISBN_T>(token);
+    return util::toArray<Book::ISBN_T>(token);
 }
 static Book::BOOKNAME_T parseBookName(const std::string& token) {
     expect(token).consistedOf(PRINTABLE_WITHOUT_QUOTES);
-    return util::to_array<Book::BOOKNAME_T>(token);
+    return util::toArray<Book::BOOKNAME_T>(token);
 }
 static Book::AUTHOR_T parseAuthor(const std::string& token) {
     expect(token).consistedOf(PRINTABLE_WITHOUT_QUOTES);
-    return util::to_array<Book::AUTHOR_T>(token);
+    return util::toArray<Book::AUTHOR_T>(token);
 }
 static Book::KEYWORD_T parseKeyword(const std::string& token) {
     expect(token).consistedOf(PRINTABLE_WITHOUT_QUOTES);
@@ -32,7 +32,7 @@ static Book::KEYWORD_T parseKeyword(const std::string& token) {
     expect(keywords[0].size()).ge(1);
     auto it = std::unique(keywords.begin(), keywords.end());
     expect(it == keywords.end()).toBe(true);
-    return util::to_array<Book::KEYWORD_T>(token);
+    return util::toArray<Book::KEYWORD_T>(token);
 }
 static int parseQuantity(const std::string& token) {
     expect(token).consistedOf(NUMERIC);
@@ -104,14 +104,14 @@ auto handleSHOW(const std::vector<std::string>& tokens) -> std::unique_ptr<Comma
         auto result = std::make_unique<ShowCommand>();
         auto [tp, val] = parseOption(tokens[1]);
         if (tp == Option::ISBN) {
-            result->ISBN = util::to_array<Book::ISBN_T>(val);
+            result->ISBN = util::toArray<Book::ISBN_T>(val);
         } else if (tp == Option::BOOKNAME) {
-            result->name = util::to_array<Book::BOOKNAME_T>(val);
+            result->name = util::toArray<Book::BOOKNAME_T>(val);
         } else if (tp == Option::AUTHOR) {
-            result->author = util::to_array<Book::AUTHOR_T>(val);
+            result->author = util::toArray<Book::AUTHOR_T>(val);
         } else if (tp == Option::KEYWORD) {
             expect(val).consistedOf(PRINTABLE_WITHOUT_BAR);
-            result->keyword = util::to_array<Book::KEYWORD_T>(val);
+            result->keyword = util::toArray<Book::KEYWORD_T>(val);
         } else {
             throw ParseException("show error: invalid option");
         }

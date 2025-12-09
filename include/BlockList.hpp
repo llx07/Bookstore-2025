@@ -27,7 +27,7 @@ public:
     // Returns all values with the given key. Returns empty vectors if no such value exists.
     std::vector<T> query(const Key& key);
     // Returns all values in this.
-    std::vector<T> query_all();
+    std::vector<T> queryAll();
 
 private:
     // The maximum number of (key, value) that can be stored in a single block
@@ -55,12 +55,12 @@ private:
     MemoryRiver<Block, 1> file;
 
     // Gets or sets the index of first block
-    int get_first_head() {
+    int getFirstHead() {
         int pos;
-        file.get_info(pos, 1);
+        file.getInfo(pos, 1);
         return pos;
     }
-    void set_first_head(int pos) { file.write_info(pos, 1); }
+    void setFirstHead(int pos) { file.writeInfo(pos, 1); }
     // Macro for defining getters and setters for header data of a block.
 #define DEFINE_GETTER_AND_SETTER(MEMBER)                               \
     void set_##MEMBER(int index, const decltype(Block::MEMBER)& val) { \
@@ -81,27 +81,27 @@ private:
 #undef DEFINE_GETTER_AND_SETTER
 
     // Reads a whole block from file.
-    Block get_block(int block_id);
+    Block getBlock(int block_id);
     // Writes a whole block to file.
-    void set_block(int block_id, const Block& block);
+    void setBlock(int block_id, const Block& block);
     // Maintains the min and max elem in head data of a block
-    void update_minmax_elem(Block& b);
+    void updateMinMaxElem(Block& b);
     // Creates a new block and returns its index.
-    int allocate_new_block();
+    int allocateNewBlock();
     // Splits half the data block_id into a new block.
     // Prerequisite: the block must have at least two elements.
-    void split_block(int block_id);
+    void splitBlock(int block_id);
     // Merges block id1 and id2 together.
     // Prerequisite: the two blocks must be adjacent and in order id1 -> id2.
-    void merge_block(int id1, int id2);
+    void mergeBlock(int id1, int id2);
     // Inserts (key, value) into block_id.
-    void insert_in_block(int block_id, const Key& key, const T& value);
+    void insertInBlock(int block_id, const Key& key, const T& value);
     // Checks if block id1 and id2 can be merged.
-    bool can_merge(int id1, int id2);
+    bool canMerge(int id1, int id2);
     // Erases (key, value) in block_id
-    void erase_in_block(int block_id, const Key& key, const T& value);
+    void eraseInBlock(int block_id, const Key& key, const T& value);
     // Returns all elements in a block whose key is equal to key/
-    std::vector<T> extract_in_block(int block_id, const Key& key);
+    std::vector<T> extractInBlock(int block_id, const Key& key);
 };
 
 template <class Key, class T>
@@ -110,30 +110,30 @@ void BlockList<Key, T>::initialise(const std::string& file_name) {
 }
 template <class Key, class T>
 void BlockList<Key, T>::insert(const Key& key, const T& value) {
-    if (!get_first_head()) {  // the blocklist is empty
-        int pos = allocate_new_block();
-        set_first_head(pos);
-        insert_in_block(pos, key, value);
+    if (!getFirstHead()) {  // the blocklist is empty
+        int pos = allocateNewBlock();
+        setFirstHead(pos);
+        insertInBlock(pos, key, value);
         return;
     }
     auto elem = KeyValuePair{key, value};
-    int block_now = get_first_head();
+    int block_now = getFirstHead();
     while (true) {
         if (get_count(block_now) == 0 || !get_next_head(block_now)) break;
         if (get_max_elem(block_now) >= elem) break;
         block_now = get_next_head(block_now);
     }
-    insert_in_block(block_now, key, value);
+    insertInBlock(block_now, key, value);
     if (get_count(block_now) >= BLOCK_CAPACITY) {
-        split_block(block_now);
+        splitBlock(block_now);
     }
 }
 template <class Key, class T>
 void BlockList<Key, T>::erase(const Key& key, const T& value) {
-    if (!get_first_head()) return;  // the block list is empty
+    if (!getFirstHead()) return;  // the block list is empty
 
     auto elem = KeyValuePair{key, value};
-    int block_now = get_first_head();
+    int block_now = getFirstHead();
 
     while (block_now) {
         if (get_count(block_now) == 0 || get_max_elem(block_now) < elem) {
@@ -146,24 +146,24 @@ void BlockList<Key, T>::erase(const Key& key, const T& value) {
     }
     if (!block_now) return;
     // elem may be in this block
-    erase_in_block(block_now, key, value);
+    eraseInBlock(block_now, key, value);
 
     int pre = get_prev_head(block_now);
     int nxt = get_next_head(block_now);
 
-    if (pre && can_merge(pre, block_now)) {
-        merge_block(pre, block_now);
-    } else if (nxt && can_merge(block_now, nxt)) {
-        merge_block(block_now, nxt);
+    if (pre && canMerge(pre, block_now)) {
+        mergeBlock(pre, block_now);
+    } else if (nxt && canMerge(block_now, nxt)) {
+        mergeBlock(block_now, nxt);
     }
 }
 template <class Key, class T>
 std::vector<T> BlockList<Key, T>::query(const Key& key) {
     std::vector<T> results;
 
-    if (!get_first_head()) return results;  // the block list is empty
+    if (!getFirstHead()) return results;  // the block list is empty
 
-    int block_now = get_first_head();
+    int block_now = getFirstHead();
     // skip useless blocks
     while (block_now) {
         if (get_count(block_now) == 0 || get_max_elem(block_now).first < key) {
@@ -181,7 +181,7 @@ std::vector<T> BlockList<Key, T>::query(const Key& key) {
             continue;
         }
         if (get_min_elem(block_now).first > key) break;
-        auto results_in_this_block = extract_in_block(block_now, key);
+        auto results_in_this_block = extractInBlock(block_now, key);
         for (auto& value : results_in_this_block) {
             results.push_back(value);
         }
@@ -190,12 +190,12 @@ std::vector<T> BlockList<Key, T>::query(const Key& key) {
     return results;
 }
 template <class Key, class T>
-std::vector<T> BlockList<Key, T>::query_all() {
+std::vector<T> BlockList<Key, T>::queryAll() {
     std::vector<T> results;
-    if (!get_first_head()) return results;  // the block list is empty
-    int block_now = get_first_head();
+    if (!getFirstHead()) return results;  // the block list is empty
+    int block_now = getFirstHead();
     while (block_now) {
-        const auto& block = get_block(block_now);
+        const auto& block = getBlock(block_now);
         for (int i = 0; i < block.count; i++) {
             results.push_back(block.data[i].second);
         }
@@ -204,34 +204,34 @@ std::vector<T> BlockList<Key, T>::query_all() {
     return results;
 }
 template <class Key, class T>
-typename BlockList<Key, T>::Block BlockList<Key, T>::get_block(int block_id) {
+typename BlockList<Key, T>::Block BlockList<Key, T>::getBlock(int block_id) {
     Block data;
     file.read(data, block_id);
     return data;
 }
 template <class Key, class T>
-void BlockList<Key, T>::set_block(int block_id, const Block& block) {
+void BlockList<Key, T>::setBlock(int block_id, const Block& block) {
     file.update(block, block_id);
 }
 template <class Key, class T>
-void BlockList<Key, T>::update_minmax_elem(Block& b) {
+void BlockList<Key, T>::updateMinMaxElem(Block& b) {
     if (!b.count) return;  // don't modify empty block
     b.min_elem = b.data[0];
     b.max_elem = b.data[b.count - 1];
 }
 template <class Key, class T>
-int BlockList<Key, T>::allocate_new_block() {
+int BlockList<Key, T>::allocateNewBlock() {
     int pos = file.write(Block{});
     return pos;
 }
 template <class Key, class T>
-void BlockList<Key, T>::split_block(int block_id) {
-    auto b1 = get_block(block_id);
+void BlockList<Key, T>::splitBlock(int block_id) {
+    auto b1 = getBlock(block_id);
     assert(b1.count >= 2);
     int mid = b1.count / 2;
 
-    int new_block = allocate_new_block();
-    auto b2 = get_block(new_block);
+    int new_block = allocateNewBlock();
+    auto b2 = getBlock(new_block);
     // copy the latter part of the data
     for (int i = mid; i < b1.count; i++) {
         b2.data[i - mid] = b1.data[i];
@@ -245,15 +245,15 @@ void BlockList<Key, T>::split_block(int block_id) {
     set_prev_head(b1.next_head, new_block);  // also work if h is the last block
     b1.next_head = new_block;
     // update the min/max elements
-    update_minmax_elem(b1);
-    update_minmax_elem(b2);
-    set_block(block_id, b1);
-    set_block(new_block, b2);
+    updateMinMaxElem(b1);
+    updateMinMaxElem(b2);
+    setBlock(block_id, b1);
+    setBlock(new_block, b2);
 }
 template <class Key, class T>
-void BlockList<Key, T>::merge_block(int id1, int id2) {
-    auto b1 = get_block(id1);
-    auto b2 = get_block(id2);
+void BlockList<Key, T>::mergeBlock(int id1, int id2) {
+    auto b1 = getBlock(id1);
+    auto b2 = getBlock(id2);
     assert(b1.count + b2.count <= BLOCK_CAPACITY);
     for (int i = b1.count; i < b1.count + b2.count; i++) {
         b1.data[i] = b2.data[i - b1.count];
@@ -264,15 +264,15 @@ void BlockList<Key, T>::merge_block(int id1, int id2) {
     b1.next_head = b2.next_head;
     set_prev_head(b2.next_head, id1);
     // update the min/max elements
-    update_minmax_elem(b1);
-    set_block(id1, b1);
+    updateMinMaxElem(b1);
+    setBlock(id1, b1);
 
     // remove b2,b2 from the disk
     file.erase(id2);
 }
 template <class Key, class T>
-void BlockList<Key, T>::insert_in_block(int block_id, const Key& key, const T& value) {
-    auto b = get_block(block_id);
+void BlockList<Key, T>::insertInBlock(int block_id, const Key& key, const T& value) {
+    auto b = getBlock(block_id);
 
     auto elem = KeyValuePair{key, value};
     int pos = std::lower_bound(b.data, b.data + b.count, elem) - b.data;
@@ -281,16 +281,16 @@ void BlockList<Key, T>::insert_in_block(int block_id, const Key& key, const T& v
     }
     b.data[pos] = elem;
     ++b.count;
-    update_minmax_elem(b);
-    set_block(block_id, b);
+    updateMinMaxElem(b);
+    setBlock(block_id, b);
 }
 template <class Key, class T>
-bool BlockList<Key, T>::can_merge(int id1, int id2) {
+bool BlockList<Key, T>::canMerge(int id1, int id2) {
     return get_count(id1) + get_count(id2) < BLOCK_CAPACITY;
 }
 template <class Key, class T>
-void BlockList<Key, T>::erase_in_block(int block_id, const Key& key, const T& value) {
-    auto b = get_block(block_id);
+void BlockList<Key, T>::eraseInBlock(int block_id, const Key& key, const T& value) {
+    auto b = getBlock(block_id);
     auto elem = KeyValuePair{key, value};
     int pos = std::lower_bound(b.data, b.data + b.count, elem) - b.data;
     if (b.data[pos] != elem) return;
@@ -298,13 +298,13 @@ void BlockList<Key, T>::erase_in_block(int block_id, const Key& key, const T& va
         b.data[i] = b.data[i + 1];
     }
     --b.count;
-    update_minmax_elem(b);
-    set_block(block_id, b);
+    updateMinMaxElem(b);
+    setBlock(block_id, b);
 }
 template <class Key, class T>
-std::vector<T> BlockList<Key, T>::extract_in_block(int block_id, const Key& key) {
+std::vector<T> BlockList<Key, T>::extractInBlock(int block_id, const Key& key) {
     std::vector<T> results;
-    auto b = get_block(block_id);
+    auto b = getBlock(block_id);
     for (int i = 0; i < b.count; i++) {
         auto [k, v] = b.data[i];
         if (k == key) {

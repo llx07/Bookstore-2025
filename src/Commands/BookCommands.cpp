@@ -3,7 +3,7 @@
 #include "Utils.hpp"
 
 void ShowCommand::execute(Session& session) {
-    if (session.get_privilege() < 1) {
+    if (session.getPrivilege() < 1) {
         throw ExecutionException("show error: privilege not enough to operate.");
     }
     auto& os = session.out_stream;
@@ -16,15 +16,15 @@ void ShowCommand::execute(Session& session) {
 
     std::vector<Book> books;
     if (ISBN.has_value()) {
-        books = session.books_manager.get_books_with_ISBN(ISBN.value());
+        books = session.books_manager.getBooksWithISBN(ISBN.value());
     } else if (name.has_value()) {
-        books = session.books_manager.get_books_with_name(name.value());
+        books = session.books_manager.getBooksWithName(name.value());
     } else if (author.has_value()) {
-        books = session.books_manager.get_books_with_author(author.value());
+        books = session.books_manager.getBooksWithAuthor(author.value());
     } else if (keyword.has_value()) {
-        books = session.books_manager.get_books_with_keyword(keyword.value());
+        books = session.books_manager.getBooksWithKeyword(keyword.value());
     } else {
-        books = session.books_manager.get_all_books();
+        books = session.books_manager.getAllBooks();
     }
 
     for (auto& book : books) {
@@ -44,10 +44,10 @@ void ShowCommand::execute(Session& session) {
 }
 
 void BuyCommand::execute(Session& session) {
-    if (session.get_privilege() < 1) {
+    if (session.getPrivilege() < 1) {
         throw ExecutionException("buy error: privilege not enough to operate.");
     }
-    auto result = session.books_manager.get_books_with_ISBN(ISBN);
+    auto result = session.books_manager.getBooksWithISBN(ISBN);
     if (result.empty()) {
         throw ExecutionException("buy error: book with ISBN doesn't exist");
     }
@@ -56,39 +56,39 @@ void BuyCommand::execute(Session& session) {
         throw ExecutionException("buy error: quantity is more than quantity in storage");
     }
 
-    session.books_manager.buy_book(ISBN, quantity);
+    session.books_manager.buyBook(ISBN, quantity);
 
     long long money_need = book.price * quantity;
     auto& os = session.out_stream;
     util::outputDecimal(os, money_need);
     os << "\n";
-    session.log_manager.add_finance_log(money_need);
+    session.log_manager.addFinanceLog(money_need);
 }
 BuyCommand::BuyCommand(const Book::ISBN_T& _ISBN, int _quantity)
     : ISBN(_ISBN), quantity(_quantity) {}
 
 void SelectCommand::execute(Session& session) {
-    if (session.get_privilege() < 3) {
+    if (session.getPrivilege() < 3) {
         throw ExecutionException("select error: privilege not enough to operate.");
     }
 
-    auto result = session.books_manager.get_id_by_ISBN(ISBN);
+    auto result = session.books_manager.getIdByISBN(ISBN);
     if (!result) {
-        session.books_manager.create_book(ISBN);
-        result = session.books_manager.get_id_by_ISBN(ISBN);
+        session.books_manager.createBook(ISBN);
+        result = session.books_manager.getIdByISBN(ISBN);
     }
-    session.set_selected_book(result);
+    session.setSelectedBook(result);
 }
 SelectCommand::SelectCommand(const Book::ISBN_T& _ISBN) : ISBN(_ISBN) {}
 
 void ModifyCommand::execute(Session& session) {
-    if (session.get_privilege() < 3) {
+    if (session.getPrivilege() < 3) {
         throw ExecutionException("modify error: privilege not enough to operate.");
     }
-    if (!session.get_selected_book()) {
+    if (!session.getSelectedBook()) {
         throw ExecutionException("modify error: selected book is empty");
     }
-    Book book_data = session.books_manager.get_book_by_id(session.get_selected_book());
+    Book book_data = session.books_manager.getBookById(session.getSelectedBook());
     if (new_ISBN && new_ISBN == book_data.ISBN) {
         throw ExecutionException("modify error: new ISBN mustn't be the same with before");
     }
@@ -108,19 +108,19 @@ void ModifyCommand::execute(Session& session) {
     if (new_price) {
         book_data.price = new_price.value();
     }
-    session.books_manager.modify_book_data(old_ISBN, book_data);
+    session.books_manager.modifyBookData(old_ISBN, book_data);
 }
 
 void ImportCommand::execute(Session& session) {
-    if (session.get_privilege() < 3) {
+    if (session.getPrivilege() < 3) {
         throw ExecutionException("import error: privilege not enough to operate.");
     }
-    if (!session.get_selected_book()) {
+    if (!session.getSelectedBook()) {
         throw ExecutionException("modify error: selected book is empty");
     }
-    Book book_data = session.books_manager.get_book_by_id(session.get_selected_book());
-    session.books_manager.import_book(book_data.ISBN, quantity);
-    session.log_manager.add_finance_log(-total_cost);
+    Book book_data = session.books_manager.getBookById(session.getSelectedBook());
+    session.books_manager.importBook(book_data.ISBN, quantity);
+    session.log_manager.addFinanceLog(-total_cost);
 }
 ImportCommand::ImportCommand(int _quantity, long long _total_cost)
     : quantity(_quantity), total_cost(_total_cost) {}

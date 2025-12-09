@@ -19,9 +19,10 @@ int main() {
         }
 
         try {
-            auto command = parse_command(tokens);
+            auto command = parseCommand(tokens);
             command->execute(session);
-        } catch (const std::exception&) {
+        } catch (const std::exception& e) {
+            std::cerr << "[VERBOSE] From main:" << e.what() << std::endl;
             std::cout << "Invalid\n";
         }
     }
