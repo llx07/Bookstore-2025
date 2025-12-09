@@ -44,7 +44,7 @@ static long long parsePrice(const std::string& token) {
     expect(token).consistedOf(NUMERIC_DOT);
     expect(token.size()).le(13);
     long long value = util::toDecimal(token);
-    expect(value).ge(0);
+    expect(value).ge(1);
     return value;
 }
 
