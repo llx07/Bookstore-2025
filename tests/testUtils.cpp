@@ -56,3 +56,31 @@ TEST_CASE("util::to_array", "[Utils][to_array]") {
         REQUIRE(result == std::array<char, 5>{'\0', '\0', '\0', '\0', '\0'});
     }
 }
+
+TEST_CASE("Validator Convert to Int", "[Validator]") {
+    REQUIRE(util::toInt(std::string{"0"}) == 0);
+    REQUIRE(util::toInt(std::string{"123"}) == 123);
+    REQUIRE(util::toInt(std::string{"-123"}) == -123);
+    REQUIRE(util::toInt(std::string{"12300"}) == 12300);
+    REQUIRE_THROWS(util::toInt(std::string{"abc"}));
+    REQUIRE_THROWS(util::toInt(std::string{"123456789132"}));
+    REQUIRE_THROWS(util::toInt(std::string{"0123"}));
+}
+
+TEST_CASE("Validator Convert to Decimal", "[Validator]") {
+    REQUIRE(util::toDecimal(std::string{"0"}) == 0);
+    REQUIRE(util::toDecimal(std::string{"1"}) == 100);
+    REQUIRE(util::toDecimal(std::string{"1.2"}) == 120);
+    REQUIRE(util::toDecimal(std::string{"12.34"}) == 1234);
+    REQUIRE(util::toDecimal(std::string{"0.34"}) == 34);
+    REQUIRE_THROWS(util::toDecimal(std::string{"1."}));
+    REQUIRE_THROWS(util::toDecimal(std::string{".1"}));
+    REQUIRE_THROWS(util::toDecimal(std::string{"00.1"}));
+    REQUIRE_THROWS(util::toDecimal(std::string{"01.23"}));
+    REQUIRE_THROWS(util::toDecimal(std::string{"1.234"}));
+    REQUIRE_THROWS(util::toDecimal(std::string{"1.abc"}));
+    REQUIRE_THROWS(util::toDecimal(std::string{"hello"}));
+    REQUIRE_THROWS(util::toDecimal(std::string{"hello.5"}));
+    REQUIRE_THROWS(util::toDecimal(std::string{"1.."}));
+    REQUIRE_THROWS(util::toDecimal(std::string{"1.20.2"}));
+}
