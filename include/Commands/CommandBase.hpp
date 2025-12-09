@@ -17,6 +17,7 @@ private:
 
 class Command {
 public:
+    // May throws ExecutionException
     virtual void execute(Session& session) = 0;
     virtual ~Command() = default;
 };

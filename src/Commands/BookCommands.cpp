@@ -60,6 +60,7 @@ void BuyCommand::execute(Session& session) {
     long long money_need = book.price * quantity;
     auto& os = session.out_stream;
     os << money_need / 100 << '.' << std::setw(2) << std::setfill('0') << money_need % 100 << '\n';
+    // TODO(llx) finance log here.
 }
 BuyCommand::BuyCommand(const Book::ISBN_T& _ISBN, int _quantity)
     : ISBN(_ISBN), quantity(_quantity) {}
@@ -117,6 +118,7 @@ void ImportCommand::execute(Session& session) {
     }
     Book book_data = session.books_manager.get_book_by_id(session.get_selected_book());
     session.books_manager.import_book(book_data.ISBN, quantity);
+    // TODO(llx) finance log here.
 }
 ImportCommand::ImportCommand(int _quantity, long long _total_cost)
     : quantity(_quantity), total_cost(_total_cost) {}
