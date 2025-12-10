@@ -1,6 +1,7 @@
 #include "LogManager.hpp"
 
 #include <cmath>
+
 LogManager& LogManager::getInstance() {
     static LogManager instance;
     return instance;
@@ -34,4 +35,17 @@ std::pair<long long, long long> LogManager::getFinanceLog(int cnt) {
     }
     return std::make_pair(income, expense);
 }
-LogManager::LogManager() { finance_log.initialise("log_finance"); }
+int LogManager::addOperationLog(long long timestamp, User::USERID_T userid, Log::OPERATION_T op) {
+    OperationLogEntry entry{timestamp, userid, op, 0};
+    return operation_log.write(entry);
+}
+void LogManager::markOperationSuccess(int id) {
+    OperationLogEntry entry;
+    operation_log.read(entry, id);
+    entry.is_success = 1;
+    operation_log.update(entry, id);
+}
+LogManager::LogManager() {
+    finance_log.initialise("log_finance");
+    operation_log.initialise("log_operation");
+}

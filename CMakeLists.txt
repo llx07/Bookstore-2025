@@ -37,6 +37,7 @@ set(MAIN_SOURCES
         src/Parser/BookParser.cpp
         src/Parser/LogParser.cpp
         src/LogManager.cpp
+        src/Util.cpp
 )
 set(TEST_SOURCES
         tests/testMemoryRiver.cpp

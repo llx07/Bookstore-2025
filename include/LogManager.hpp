@@ -18,6 +18,7 @@ struct OperationLogEntry {
     long long timestamp;
     User::USERID_T userid;
     Log::OPERATION_T op;
+    int is_success;
 };
 
 class LogManager {
@@ -28,10 +29,14 @@ public:
     // count must be greater than zero
     std::pair<long long, long long> getFinanceLog(int cnt = 0);
 
+    int addOperationLog(long long timestamp, User::USERID_T userid, Log::OPERATION_T op);
+    void markOperationSuccess(int id);
+
 private:
     LogManager();
     ~LogManager() = default;
     MemoryRiver<FinanceLogEntry, 1> finance_log;
+    MemoryRiver<OperationLogEntry, 1> operation_log;
 };
 
 #endif  // BOOKSTORE_LOGMANAGER_HPP

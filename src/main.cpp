@@ -20,7 +20,22 @@ int main() {
         session.updateTimestamp();
         try {
             auto command = parseCommand(tokens);
+
+            std::string command_stripped{};
+            for (int i = 0; i < tokens.size(); i++) {
+                command_stripped += tokens[i];
+                if (i != tokens.size() - 1) {
+                    command_stripped += " ";
+                }
+            }
+
+            // parse success
+            int log_id = session.log_manager.addOperationLog(
+                session.getTimestamp(), session.getCurrentUser(),
+                util::toArray<Log::OPERATION_T>(command_stripped));
             command->execute(session);
+            // operation success
+            session.log_manager.markOperationSuccess(log_id);
         } catch (const std::exception& e) {
             std::cerr << "[VERBOSE] From main:" << e.what() << std::endl;
             std::cout << "Invalid\n";

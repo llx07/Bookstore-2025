@@ -1,5 +1,6 @@
 
 #include <catch2/catch_test_macros.hpp>
+#include <iostream>
 
 #include "Utils.hpp"
 
@@ -83,4 +84,14 @@ TEST_CASE("Validator Convert to Decimal", "[Validator]") {
     REQUIRE_THROWS(util::toDecimal(std::string{"hello.5"}));
     REQUIRE_THROWS(util::toDecimal(std::string{"1.."}));
     REQUIRE_THROWS(util::toDecimal(std::string{"1.20.2"}));
+}
+
+TEST_CASE("Test Table", "[Table]") {
+    std::vector<int> L{1, 5, 3, 9, 7};
+    util::printTableHead(std::cerr, L);
+    util::printTableBody(std::cerr, L, {"a", "BB", "C", "D", "E"});
+    util::printTableMiddle(std::cerr, L);
+    util::printTableBody(std::cerr, L, {"1", "2", "3", "4", "5"});
+    util::printTableBody(std::cerr, L, {"1", "2long", "3", "4verylonglonglong", "5"});
+    util::printTableBottom(std::cerr, L);
 }
