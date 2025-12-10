@@ -4,6 +4,7 @@
 #include <exception>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -99,6 +100,11 @@ long long toDecimal(const std::string& value) {
 void outputDecimal(std::ostream& out, long long val) {
     out << val / 100 << "." << std::setw(2) << std::setfill('0') << val % 100;
 }
+std::string decimalToString(long long val) {
+    std::ostringstream oss;
+    outputDecimal(oss, val);
+    return oss.str();
+}
 
 void printTableHead(std::ostream& out, const std::vector<int>& lengths) {
     out << "┌";
@@ -154,6 +160,12 @@ void printTableBody(std::ostream& out, const std::vector<int>& lengths,
     }
     out << "\n";
 }
-
+std::string timestampToString(long long timestamp) {
+    std::time_t seconds = timestamp / 1000;
+    std::tm tm = *std::localtime(&seconds);
+    std::ostringstream oss;
+    oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
+    return oss.str();
+}
 };  // namespace util
 #endif  // BOOKSTORE_UTILS_HPP

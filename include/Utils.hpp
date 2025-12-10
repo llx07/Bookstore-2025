@@ -27,6 +27,17 @@ T toArray(const std::string& s) {
     return result;
 }
 
+template <typename T>
+std::string toString(const T& s) {
+    static_assert(std::is_same_v<T, std::array<char, std::tuple_size_v<T>>>,
+                  "T must be std::array<char, N>");
+
+    std::string result;
+    for (auto it = s.begin(); *it; ++it) {
+        result += *it;
+    }
+    return result;
+}
 // convert a string into int
 // Disallow trailing zero
 // Example:
@@ -51,12 +62,15 @@ int toInt(const std::string& value);
 long long toDecimal(const std::string& value);
 
 void outputDecimal(std::ostream& out, long long val);
+std::string decimalToString(long long val);
 
 void printTableHead(std::ostream& out, const std::vector<int>& lengths);
 void printTableMiddle(std::ostream& out, const std::vector<int>& lengths);
 void printTableBottom(std::ostream& out, const std::vector<int>& lengths);
 void printTableBody(std::ostream& out, const std::vector<int>& lengths,
                     const std::vector<std::string>& head);
+
+std::string timestampToString(long long timestamp);
 
 };  // namespace util
 #endif  // BOOKSTORE_UTILS_HPP

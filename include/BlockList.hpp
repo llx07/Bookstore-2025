@@ -28,6 +28,7 @@ public:
     std::vector<T> query(const Key& key);
     // Returns all values in this.
     std::vector<T> queryAll();
+    std::vector<std::pair<Key, T>> queryAllKeyValuePairs();
 
 private:
     // The maximum number of (key, value) that can be stored in a single block
@@ -198,6 +199,20 @@ std::vector<T> BlockList<Key, T>::queryAll() {
         const auto& block = getBlock(block_now);
         for (int i = 0; i < block.count; i++) {
             results.push_back(block.data[i].second);
+        }
+        block_now = get_next_head(block_now);
+    }
+    return results;
+}
+template <class Key, class T>
+std::vector<std::pair<Key, T>> BlockList<Key, T>::queryAllKeyValuePairs() {
+    std::vector<std::pair<Key, T>> results;
+    if (!getFirstHead()) return results;  // the block list is empty
+    int block_now = getFirstHead();
+    while (block_now) {
+        const auto& block = getBlock(block_now);
+        for (int i = 0; i < block.count; i++) {
+            results.emplace_back(block.data[i].first, block.data[i].second);
         }
         block_now = get_next_head(block_now);
     }

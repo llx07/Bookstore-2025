@@ -14,4 +14,20 @@ public:
 private:
     std::optional<int> count;
 };
+
+class ReportFinanceCommand : public Command {
+public:
+    void execute(Session& session) override;
+    ReportFinanceCommand() = default;
+};
+class ReportEmployeeCommand : public Command {
+public:
+    void execute(Session& session) override;
+    ReportEmployeeCommand() = default;
+};
+class LogCommand : public Command {
+public:
+    void execute(Session& session) override;
+    LogCommand() = default;
+};
 #endif  // BOOKSTORE_LOGCOMMANDS_HPP

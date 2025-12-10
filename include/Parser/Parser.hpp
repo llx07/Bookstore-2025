@@ -38,7 +38,10 @@ private:
 
 std::unique_ptr<Command> parseCommand(const std::vector<std::string>& tokens);
 
+#define CONCAT_IMPL(x, y) x##y
+#define CONCAT(x, y) CONCAT_IMPL(x, y)
+
 #define REGISTER_HANDLER(command_name, func) \
-    static HandlerRegistry __registry_##command_name(#command_name, func)
+    static HandlerRegistry CONCAT(__registry_##command_name, __LINE__)(#command_name, func)
 
 #endif  // BOOKSTORE_PARSER_HPP

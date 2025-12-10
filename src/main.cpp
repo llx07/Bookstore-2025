@@ -31,7 +31,7 @@ int main() {
 
             // parse success
             int log_id = session.log_manager.addOperationLog(
-                session.getTimestamp(), session.getCurrentUser(),
+                session.getTimestamp(), session.getCurrentUser(), session.getPrivilege(),
                 util::toArray<Log::OPERATION_T>(command_stripped));
             command->execute(session);
             // operation success
