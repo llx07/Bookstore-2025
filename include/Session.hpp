@@ -1,12 +1,14 @@
 #ifndef BOOKSTORE_SESSION_HPP
 #define BOOKSTORE_SESSION_HPP
 
+#include <charconv>
 #include <iostream>
 #include <stack>
 
 #include "BooksManager.hpp"
 #include "LogManager.hpp"
 #include "UsersManager.hpp"
+#include "Utils.hpp"
 
 class Session {
 public:
@@ -18,11 +20,20 @@ public:
     int getPrivilege();
     void loginPush(const User::USERID_T& userid);
     void loginPop();
-    bool loginEmpty() const;
+    bool isLoginEmpty() const;
     void setSelectedBook(int bookID);
     int getSelectedBook();
+    User::USERID_T getCurrentUser() {
+        if (isLoginEmpty()) {
+            return util::toArray<User::USERID_T>("<GUEST>");
+        }
+        return login_stack.top().userid;
+    }
     static bool isLoggedIn(const User::USERID_T& userid);
     ~Session();
+
+    long long getTimestamp() const;
+    void updateTimestamp();
 
 private:
     struct LoginState {
@@ -30,6 +41,7 @@ private:
         int book_selected;
     };
     std::stack<LoginState> login_stack;
+    long long timestamp;
 };
 
 #endif  // BOOKSTORE_SESSION_HPP

@@ -17,7 +17,7 @@ int main() {
         if (tokens.size() == 1 && (tokens[0] == "quit" || tokens[0] == "exit")) {
             break;
         }
-
+        session.updateTimestamp();
         try {
             auto command = parseCommand(tokens);
             command->execute(session);

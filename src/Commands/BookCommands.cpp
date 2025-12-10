@@ -62,7 +62,7 @@ void BuyCommand::execute(Session& session) {
     auto& os = session.out_stream;
     util::outputDecimal(os, money_need);
     os << "\n";
-    session.log_manager.addFinanceLog(money_need);
+    session.log_manager.addFinanceLog(session.getTimestamp(), session.getCurrentUser(), money_need);
 }
 BuyCommand::BuyCommand(const Book::ISBN_T& _ISBN, int _quantity)
     : ISBN(_ISBN), quantity(_quantity) {}
@@ -120,7 +120,8 @@ void ImportCommand::execute(Session& session) {
     }
     Book book_data = session.books_manager.getBookById(session.getSelectedBook());
     session.books_manager.importBook(book_data.ISBN, quantity);
-    session.log_manager.addFinanceLog(-total_cost);
+    session.log_manager.addFinanceLog(session.getTimestamp(), session.getCurrentUser(),
+                                      -total_cost);
 }
 ImportCommand::ImportCommand(int _quantity, long long _total_cost)
     : quantity(_quantity), total_cost(_total_cost) {}

@@ -20,7 +20,7 @@ void Session::loginPop() {
     users_manager.modifyLoginCount(login_stack.top().userid, -1);
     login_stack.pop();
 }
-bool Session::loginEmpty() const { return login_stack.empty(); }
+bool Session::isLoginEmpty() const { return login_stack.empty(); }
 void Session::setSelectedBook(int bookID) {
     assert(!login_stack.empty());
     login_stack.top().book_selected = bookID;
@@ -36,4 +36,10 @@ Session::~Session() {
     while (!login_stack.empty()) {
         loginPop();
     }
+}
+long long Session::getTimestamp() const { return timestamp; }
+void Session::updateTimestamp() {
+    auto now = std::chrono::system_clock::now();
+    timestamp =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 }

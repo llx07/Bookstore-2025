@@ -31,7 +31,7 @@ void LogoutCommand::execute(Session& session) {
     if (session.getPrivilege() < 1) {
         throw ExecutionException("logout error: privilege not enough to operate.");
     }
-    if (session.loginEmpty()) {
+    if (session.isLoginEmpty()) {
         throw ExecutionException("logout error: no user logged in");
     }
     session.loginPop();
