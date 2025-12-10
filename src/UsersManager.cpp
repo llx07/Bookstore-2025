@@ -54,7 +54,7 @@ UsersManager::UsersManager() {
     if (user_data.query(util::toArray<User::USERID_T>("root")).empty()) {
         User root_user;
         root_user.userid = util::toArray<User::USERID_T>("root");
-        root_user.username = util::toArray<User::USERID_T>("root");
+        root_user.username = util::toArray<User::USERNAME_T>("root");
         root_user.password = util::toArray<User::PASSWORD_T>("sjtu");
         root_user.privilege = 7;
         addUser(root_user);
