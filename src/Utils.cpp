@@ -1,17 +1,15 @@
-#ifndef BOOKSTORE_UTILS_HPP
-#define BOOKSTORE_UTILS_HPP
+#include "Utils.hpp"
+
 #include <cassert>
-#include <exception>
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include "Utils.hpp"
-
 namespace util {
-std::vector<std::string> split(const std::string& s, char delim = '|') {
+std::vector<std::string> split(const std::string& s, char delim) {
     if (s.empty()) return {};
     std::vector<std::string> segments(1);
     for (auto ch : s) {
@@ -167,5 +165,8 @@ std::string timestampToString(long long timestamp) {
     oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
     return oss.str();
 }
+long long getTimestamp() {
+    auto now = std::chrono::system_clock::now();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+}
 };  // namespace util
-#endif  // BOOKSTORE_UTILS_HPP

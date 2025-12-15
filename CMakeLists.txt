@@ -28,7 +28,6 @@ execute_process(
 set(MAIN_SOURCES
         src/BooksManager.cpp
         src/UsersManager.cpp
-        src/Session.cpp
         src/Commands/UserCommands.cpp
         src/Commands/BookCommands.cpp
         src/Commands/LogCommands.cpp
@@ -37,7 +36,8 @@ set(MAIN_SOURCES
         src/Parser/BookParser.cpp
         src/Parser/LogParser.cpp
         src/LogManager.cpp
-        src/Util.cpp
+        src/Utils.cpp
+        src/Commands/CommandBase.cpp
 )
 set(TEST_SOURCES
         tests/testMemoryRiver.cpp

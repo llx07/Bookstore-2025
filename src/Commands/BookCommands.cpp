@@ -2,11 +2,10 @@
 
 #include "Utils.hpp"
 
-void ShowCommand::execute(Session& session) {
-    if (session.getPrivilege() < 1) {
+void ShowCommand::execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) {
+    if (usr_mgr.getUserByUserid(current_userid).privilege < 1) {
         throw ExecutionException("show error: privilege not enough to operate.");
     }
-    auto& os = session.out_stream;
 
     auto output = [&os](const auto& str) {
         for (auto it = str.begin(); *it; it++) {
@@ -16,38 +15,41 @@ void ShowCommand::execute(Session& session) {
 
     std::vector<Book> books;
     if (ISBN.has_value()) {
-        books = session.books_manager.getBooksWithISBN(ISBN.value());
+        books = bk_mgr.getBooksWithISBN(ISBN.value());
     } else if (name.has_value()) {
-        books = session.books_manager.getBooksWithName(name.value());
+        books = bk_mgr.getBooksWithName(name.value());
     } else if (author.has_value()) {
-        books = session.books_manager.getBooksWithAuthor(author.value());
+        books = bk_mgr.getBooksWithAuthor(author.value());
     } else if (keyword.has_value()) {
-        books = session.books_manager.getBooksWithKeyword(keyword.value());
+        books = bk_mgr.getBooksWithKeyword(keyword.value());
     } else {
-        books = session.books_manager.getAllBooks();
+        books = bk_mgr.getAllBooks();
     }
-
-    for (auto& book : books) {
-        output(book.ISBN);
-        os << '\t';
-        output(book.book_name);
-        os << '\t';
-        output(book.author);
-        os << '\t';
-        output(book.keywords);
-        os << '\t';
-        os << book.price / 100 << '.' << std::setw(2) << std::setfill('0') << book.price % 100;
-        os << '\t';
-        os << book.quantity;
-        os << '\n';
+    if (books.empty()) {
+        os << "\n";
+    } else {
+        for (auto& book : books) {
+            output(book.ISBN);
+            os << '\t';
+            output(book.book_name);
+            os << '\t';
+            output(book.author);
+            os << '\t';
+            output(book.keywords);
+            os << '\t';
+            util::outputDecimal(os, book.price);
+            os << '\t';
+            os << book.quantity;
+            os << '\n';
+        }
     }
 }
 
-void BuyCommand::execute(Session& session) {
-    if (session.getPrivilege() < 1) {
+void BuyCommand::execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) {
+    if (usr_mgr.getUserByUserid(current_userid).privilege < 1) {
         throw ExecutionException("buy error: privilege not enough to operate.");
     }
-    auto result = session.books_manager.getBooksWithISBN(ISBN);
+    auto result = bk_mgr.getBooksWithISBN(ISBN);
     if (result.empty()) {
         throw ExecutionException("buy error: book with ISBN doesn't exist");
     }
@@ -56,39 +58,38 @@ void BuyCommand::execute(Session& session) {
         throw ExecutionException("buy error: quantity is more than quantity in storage");
     }
 
-    session.books_manager.buyBook(ISBN, quantity);
+    bk_mgr.buyBook(ISBN, quantity);
 
     long long money_need = book.price * quantity;
-    auto& os = session.out_stream;
     util::outputDecimal(os, money_need);
     os << "\n";
-    session.log_manager.addFinanceLog(session.getTimestamp(), session.getCurrentUser(), money_need);
+    log_mgr.addFinanceLog(util::getTimestamp(), current_userid, money_need);
 }
 BuyCommand::BuyCommand(const Book::ISBN_T& _ISBN, int _quantity)
     : ISBN(_ISBN), quantity(_quantity) {}
 
-void SelectCommand::execute(Session& session) {
-    if (session.getPrivilege() < 3) {
+void SelectCommand::execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) {
+    if (usr_mgr.getUserByUserid(current_userid).privilege < 3) {
         throw ExecutionException("select error: privilege not enough to operate.");
     }
 
-    auto result = session.books_manager.getIdByISBN(ISBN);
+    auto result = bk_mgr.getIdByISBN(ISBN);
     if (!result) {
-        session.books_manager.createBook(ISBN);
-        result = session.books_manager.getIdByISBN(ISBN);
+        bk_mgr.createBook(ISBN);
+        result = bk_mgr.getIdByISBN(ISBN);
     }
-    session.setSelectedBook(result);
+    current_bookid = result;
 }
 SelectCommand::SelectCommand(const Book::ISBN_T& _ISBN) : ISBN(_ISBN) {}
 
-void ModifyCommand::execute(Session& session) {
-    if (session.getPrivilege() < 3) {
+void ModifyCommand::execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) {
+    if (usr_mgr.getUserByUserid(current_userid).privilege < 3) {
         throw ExecutionException("modify error: privilege not enough to operate.");
     }
-    if (!session.getSelectedBook()) {
+    if (!current_bookid) {
         throw ExecutionException("modify error: selected book is empty");
     }
-    Book book_data = session.books_manager.getBookById(session.getSelectedBook());
+    Book book_data = bk_mgr.getBookById(current_bookid);
     if (new_ISBN && new_ISBN == book_data.ISBN) {
         throw ExecutionException("modify error: new ISBN mustn't be the same with before");
     }
@@ -108,20 +109,19 @@ void ModifyCommand::execute(Session& session) {
     if (new_price) {
         book_data.price = new_price.value();
     }
-    session.books_manager.modifyBookData(old_ISBN, book_data);
+    bk_mgr.modifyBookData(old_ISBN, book_data);
 }
 
-void ImportCommand::execute(Session& session) {
-    if (session.getPrivilege() < 3) {
+void ImportCommand::execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) {
+    if (usr_mgr.getUserByUserid(current_userid).privilege < 3) {
         throw ExecutionException("import error: privilege not enough to operate.");
     }
-    if (!session.getSelectedBook()) {
+    if (!current_bookid) {
         throw ExecutionException("modify error: selected book is empty");
     }
-    Book book_data = session.books_manager.getBookById(session.getSelectedBook());
-    session.books_manager.importBook(book_data.ISBN, quantity);
-    session.log_manager.addFinanceLog(session.getTimestamp(), session.getCurrentUser(),
-                                      -total_cost);
+    Book book_data = bk_mgr.getBookById(current_bookid);
+    bk_mgr.importBook(book_data.ISBN, quantity);
+    log_mgr.addFinanceLog(util::getTimestamp(), current_userid, -total_cost);
 }
 ImportCommand::ImportCommand(int _quantity, long long _total_cost)
     : quantity(_quantity), total_cost(_total_cost) {}

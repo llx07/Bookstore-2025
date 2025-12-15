@@ -16,7 +16,7 @@
 
 class SwitchUserCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
     SwitchUserCommand(const User::USERID_T& _userid);
     SwitchUserCommand(const User::USERID_T& _userid, const User::PASSWORD_T& _password);
 
@@ -27,12 +27,12 @@ private:
 
 class LogoutCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
 };
 
 class RegisterCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
     RegisterCommand(const User::USERID_T& _userid, const User::PASSWORD_T& _password,
                     const User::USERNAME_T& _username);
 
@@ -44,7 +44,7 @@ private:
 
 class ChangePasswordCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
     ChangePasswordCommand(const User::USERID_T& _userid, const User::PASSWORD_T& _new_password);
     ChangePasswordCommand(const User::USERID_T& _userid, const User::PASSWORD_T& _current_password,
                           const User::PASSWORD_T& _new_password);
@@ -57,7 +57,7 @@ private:
 
 class AddUserCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
     AddUserCommand(const User::USERID_T& _userid, const User::PASSWORD_T& _password, int _privilege,
                    const User::USERNAME_T& _username);
 
@@ -70,7 +70,7 @@ private:
 
 class DeleteUserCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
     DeleteUserCommand(const User::USERID_T& _userid);
 
 private:

@@ -1,5 +1,6 @@
 #include "Parser/Parser.hpp"
 
+#include <iostream>
 #include <utility>
 
 #include "Charset.hpp"

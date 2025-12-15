@@ -1,5 +1,7 @@
 #ifndef BOOKSTORE_UTILS_HPP
 #define BOOKSTORE_UTILS_HPP
+
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -71,6 +73,6 @@ void printTableBody(std::ostream& out, const std::vector<int>& lengths,
                     const std::vector<std::string>& head);
 
 std::string timestampToString(long long timestamp);
-
+long long getTimestamp();
 };  // namespace util
 #endif  // BOOKSTORE_UTILS_HPP

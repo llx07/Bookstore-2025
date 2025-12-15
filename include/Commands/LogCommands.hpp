@@ -7,7 +7,7 @@
 
 class ShowFinanceCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
     ShowFinanceCommand() = default;
     explicit ShowFinanceCommand(int _count);
 
@@ -17,17 +17,17 @@ private:
 
 class ReportFinanceCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
     ReportFinanceCommand() = default;
 };
 class ReportEmployeeCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
     ReportEmployeeCommand() = default;
 };
 class LogCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
     LogCommand() = default;
 };
 #endif  // BOOKSTORE_LOGCOMMANDS_HPP

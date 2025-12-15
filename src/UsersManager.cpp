@@ -59,4 +59,10 @@ UsersManager::UsersManager() {
         root_user.privilege = 7;
         addUser(root_user);
     }
+    if (user_data.query(util::toArray<User::USERID_T>("<GUEST>")).empty()) {
+        User guest_user;
+        guest_user.userid = util::toArray<User::USERID_T>("<GUEST>");
+        guest_user.privilege = 0;
+        addUser(guest_user);
+    }
 }

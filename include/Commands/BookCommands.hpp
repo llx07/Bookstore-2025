@@ -14,7 +14,7 @@
 
 class ShowCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
     ShowCommand() = default;
     std::optional<Book::ISBN_T> ISBN;
     std::optional<Book::BOOKNAME_T> name;
@@ -24,7 +24,7 @@ public:
 
 class BuyCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
     BuyCommand(const Book::ISBN_T& _ISBN, int _quantity);
 
 private:
@@ -34,7 +34,7 @@ private:
 
 class SelectCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
     SelectCommand(const Book::ISBN_T& _ISBN);
 
 private:
@@ -43,7 +43,7 @@ private:
 
 class ModifyCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
     ModifyCommand() = default;
     std::optional<Book::ISBN_T> new_ISBN;
     std::optional<Book::BOOKNAME_T> new_name;
@@ -54,7 +54,7 @@ public:
 
 class ImportCommand : public Command {
 public:
-    void execute(Session& session) override;
+    void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) override;
     ImportCommand(int _quantity, long long _total_cost);
 
 private:

@@ -4,7 +4,9 @@
 #include <exception>
 #include <string>
 
-#include "Session.hpp"
+#include "BooksManager.hpp"
+#include "LogManager.hpp"
+#include "UsersManager.hpp"
 
 class ExecutionException : public std::exception {
 public:
@@ -18,7 +20,12 @@ private:
 class Command {
 public:
     // May throws ExecutionException
-    virtual void execute(Session& session) = 0;
+    virtual void execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) = 0;
     virtual ~Command() = default;
+
+protected:
+    static UsersManager& usr_mgr;
+    static BooksManager& bk_mgr;
+    static LogManager& log_mgr;
 };
 #endif  // BOOKSTORE_COMMANDS_HPP

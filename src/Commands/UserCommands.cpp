@@ -1,48 +1,49 @@
 #include "Commands/UserCommands.hpp"
 
-void SwitchUserCommand::execute(Session& session) {
-    if (session.getPrivilege() < 0) {
+void SwitchUserCommand::execute(User::USERID_T& current_userid, int& current_bookid,
+                                std::ostream& os) {
+    if (usr_mgr.getUserByUserid(current_userid).privilege < 0) {
         throw ExecutionException("su error: privilege not enough to operate.");
     }
 
-    if (!session.users_manager.useridExists(userid)) {
+    if (!usr_mgr.useridExists(userid)) {
         throw ExecutionException("su error: userID don't exists.");
     }
-    const User& user = session.users_manager.getUserByUserid(userid);
+    const User& user = usr_mgr.getUserByUserid(userid);
     if (password == std::nullopt) {  // no password provided
         // FIXME(llx) ambiguous meaning of “高于”
-        if (session.getPrivilege() <= user.privilege) {
+        if (usr_mgr.getUserByUserid(current_userid).privilege <= user.privilege) {
             throw ExecutionException("su error: privilege not enough to omit password.");
         }
     } else {
-        if (!session.users_manager.isPasswordCorrect(userid, password.value())) {
+        if (!usr_mgr.isPasswordCorrect(userid, password.value())) {
             throw ExecutionException("su error: password incorrect.");
         }
     }
 
-    session.loginPush(userid);
+    current_userid = userid;
+    current_bookid = 0;
+    usr_mgr.modifyLoginCount(current_userid, 1);
 }
 SwitchUserCommand::SwitchUserCommand(const User::USERID_T& _userid) : userid(_userid) {}
 SwitchUserCommand::SwitchUserCommand(const User::USERID_T& _userid,
                                      const User::PASSWORD_T& _password)
     : userid(_userid), password(_password) {}
 
-void LogoutCommand::execute(Session& session) {
-    if (session.getPrivilege() < 1) {
+void LogoutCommand::execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) {
+    if (usr_mgr.getUserByUserid(current_userid).privilege < 1) {
         throw ExecutionException("logout error: privilege not enough to operate.");
     }
-    if (session.isLoginEmpty()) {
-        throw ExecutionException("logout error: no user logged in");
-    }
-    session.loginPop();
+    usr_mgr.modifyLoginCount(current_userid, -1);
 }
 
-void RegisterCommand::execute(Session& session) {
-    if (session.getPrivilege() < 0) {
+void RegisterCommand::execute(User::USERID_T& current_userid, int& current_bookid,
+                              std::ostream& os) {
+    if (usr_mgr.getUserByUserid(current_userid).privilege < 0) {
         throw ExecutionException("register error: privilege not enough to operate.");
     }
 
-    if (session.users_manager.useridExists(userid)) {
+    if (usr_mgr.useridExists(userid)) {
         throw ExecutionException("register error: userid already exists.");
     }
     User user;
@@ -50,31 +51,32 @@ void RegisterCommand::execute(Session& session) {
     user.username = username;
     user.password = password;
     user.privilege = 1;
-    session.users_manager.addUser(user);
+    usr_mgr.addUser(user);
 }
 RegisterCommand::RegisterCommand(const User::USERID_T& _userid, const User::PASSWORD_T& _password,
                                  const User::USERNAME_T& _username)
     : userid(_userid), password(_password), username(_username) {}
 
-void ChangePasswordCommand::execute(Session& session) {
-    if (session.getPrivilege() < 1) {
+void ChangePasswordCommand::execute(User::USERID_T& current_userid, int& current_bookid,
+                                    std::ostream& os) {
+    if (usr_mgr.getUserByUserid(current_userid).privilege < 1) {
         throw ExecutionException("passwd error: privilege not enough to operate.");
     }
 
-    if (!session.users_manager.useridExists(userid)) {
+    if (!usr_mgr.useridExists(userid)) {
         throw ExecutionException("passwd error: userid doesn't exist.");
     }
     if (current_password == std::nullopt) {
-        if (session.getPrivilege() != 7) {
+        if (usr_mgr.getUserByUserid(current_userid).privilege != 7) {
             throw ExecutionException(
                 "passwd error: privilege not enough to omit current password.");
         }
     } else {
-        if (!session.users_manager.isPasswordCorrect(userid, current_password.value())) {
+        if (!usr_mgr.isPasswordCorrect(userid, current_password.value())) {
             throw ExecutionException("passwd error: current password is incorrect.");
         }
     }
-    session.users_manager.modifyPassword(userid, new_password);
+    usr_mgr.modifyPassword(userid, new_password);
 }
 ChangePasswordCommand::ChangePasswordCommand(const User::USERID_T& _userid,
                                              const User::PASSWORD_T& _new_password)
@@ -84,15 +86,16 @@ ChangePasswordCommand::ChangePasswordCommand(const User::USERID_T& _userid,
                                              const User::PASSWORD_T& _new_password)
     : userid(_userid), current_password(_current_password), new_password(_new_password) {}
 
-void AddUserCommand::execute(Session& session) {
-    if (session.getPrivilege() < 3) {
+void AddUserCommand::execute(User::USERID_T& current_userid, int& current_bookid,
+                             std::ostream& os) {
+    if (usr_mgr.getUserByUserid(current_userid).privilege < 3) {
         throw ExecutionException("useradd error: privilege not enough to operate.");
     }
 
-    if (session.users_manager.useridExists(userid)) {
+    if (usr_mgr.useridExists(userid)) {
         throw ExecutionException("useradd error: userid already exists.");
     }
-    if (privilege >= session.getPrivilege()) {
+    if (privilege >= usr_mgr.getUserByUserid(current_userid).privilege) {
         throw ExecutionException("useradd error: cannot add user with same or higher privilege.");
     }
     User user;
@@ -100,23 +103,24 @@ void AddUserCommand::execute(Session& session) {
     user.username = username;
     user.password = password;
     user.privilege = privilege;
-    session.users_manager.addUser(user);
+    usr_mgr.addUser(user);
 }
 AddUserCommand::AddUserCommand(const User::USERID_T& _userid, const User::PASSWORD_T& _password,
                                int _privilege, const User::USERNAME_T& _username)
     : userid(_userid), password(_password), privilege(_privilege), username(_username) {}
 
-void DeleteUserCommand::execute(Session& session) {
-    if (session.getPrivilege() < 7) {
+void DeleteUserCommand::execute(User::USERID_T& current_userid, int& current_bookid,
+                                std::ostream& os) {
+    if (usr_mgr.getUserByUserid(current_userid).privilege < 7) {
         throw ExecutionException("delete error: privilege not enough to operate.");
     }
 
-    if (!session.users_manager.useridExists(userid)) {
+    if (!usr_mgr.useridExists(userid)) {
         throw ExecutionException("delete error: userid doesn't exist.");
     }
-    if (session.isLoggedIn(userid)) {
+    if (usr_mgr.getLoginCount(userid) > 0) {
         throw ExecutionException("delete error: userid have been logged in");
     }
-    session.users_manager.eraseUser(userid);
+    usr_mgr.eraseUser(userid);
 }
 DeleteUserCommand::DeleteUserCommand(const User::USERID_T& _userid) : userid(_userid) {}
