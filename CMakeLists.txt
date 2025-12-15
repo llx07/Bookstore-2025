@@ -53,12 +53,25 @@ set(TEST_SOURCES
 add_executable(code ${MAIN_SOURCES} src/main.cpp)
 
 if (GIT_CONNECTION_STATUS EQUAL 0)
+    # unit test
     FetchContent_MakeAvailable(Catch2)
     add_executable(unit_tests ${TEST_SOURCES} ${MAIN_SOURCES})
     target_link_libraries(unit_tests PRIVATE Catch2::Catch2WithMain)
     include(CTest)
     include(Catch)
     catch_discover_tests(unit_tests)
+
+    # the server part
+    FetchContent_Declare(
+            crow
+            GIT_REPOSITORY https://github.com/CrowCpp/Crow.git
+            GIT_TAG master
+    )
+    FetchContent_MakeAvailable(crow)
+    add_executable(server ${MAIN_SOURCES} src/server.cpp)
+    target_include_directories(server PRIVATE ${crow_SOURCE_DIR}/include)
+
+
 else ()
     message(STATUS "Cannot connect to Catch2 repository. Skipping FetchContent.")
 endif ()
