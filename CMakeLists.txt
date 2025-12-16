@@ -62,6 +62,16 @@ if (GIT_CONNECTION_STATUS EQUAL 0)
     catch_discover_tests(unit_tests)
 
     # the server part
+    # 1. Download ASIO for crow
+    FetchContent_Declare(
+            asio
+            GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git
+            GIT_TAG asio-1-30-2 # 建议固定一个较新的版本 tag
+    )
+
+    FetchContent_MakeAvailable(asio)
+    set(ASIO_INCLUDE_DIR ${asio_SOURCE_DIR}/asio/include)
+    # 2. Download crow
     FetchContent_Declare(
             crow
             GIT_REPOSITORY https://github.com/CrowCpp/Crow.git
