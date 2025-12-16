@@ -80,6 +80,7 @@ if (GIT_CONNECTION_STATUS EQUAL 0)
     FetchContent_MakeAvailable(crow)
     add_executable(server ${MAIN_SOURCES} src/server.cpp)
     target_include_directories(server PRIVATE ${crow_SOURCE_DIR}/include)
+    target_include_directories(server PRIVATE ${asio_SOURCE_DIR}/asio/include)
 
 
 else ()
