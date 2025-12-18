@@ -1,30 +1,9 @@
 #include <string>
 
-#include "Charset.hpp"
 #include "Commands/UserCommands.hpp"
+#include "Parser/FieldParser.hpp"
 #include "Parser/Parser.hpp"
-#include "UsersManager.hpp"
-#include "Utils.hpp"
 #include "Validator.hpp"
-
-static User::USERID_T parse_userid(const std::string& token) {
-    expect(token).consistedOf(ALPHANUMERIC_UNDERSCORE);
-    return util::toArray<User::USERID_T>(token);
-}
-static User::PASSWORD_T parse_password(const std::string& token) {
-    expect(token).consistedOf(ALPHANUMERIC_UNDERSCORE);
-    return util::toArray<User::PASSWORD_T>(token);
-}
-static int parse_privilege(const std::string& token) {
-    expect(token).consistedOf(NUMERIC);
-    int value = util::toInt(token);
-    expect(value).toBeOneOf(0, 1, 3, 7);
-    return value;
-}
-static User::USERNAME_T parse_username(const std::string& token) {
-    expect(token).consistedOf(PRINTABLE);
-    return util::toArray<User::USERNAME_T>(token);
-}
 
 // su [UserID] ([Password])?
 static auto handleSU(const std::vector<std::string>& tokens) -> std::unique_ptr<Command> {

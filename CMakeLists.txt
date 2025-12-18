@@ -38,6 +38,7 @@ set(MAIN_SOURCES
         src/LogManager.cpp
         src/Utils.cpp
         src/Commands/CommandBase.cpp
+        src/Parser/FieldParser.cpp
 )
 set(TEST_SOURCES
         tests/testMemoryRiver.cpp
@@ -78,9 +79,26 @@ if (GIT_CONNECTION_STATUS EQUAL 0)
             GIT_TAG master
     )
     FetchContent_MakeAvailable(crow)
+
+    FetchContent_Declare(jwt-cpp
+            GIT_REPOSITORY https://github.com/Thalhammer/jwt-cpp.git
+            GIT_TAG 08bcf77a687fb06e34138e9e9fa12a4ecbe12332 # v0.7.0 release
+    )
+    set(JWT_BUILD_EXAMPLES OFF CACHE BOOL "disable building examples" FORCE)
+    FetchContent_MakeAvailable(jwt-cpp)
+
     add_executable(server ${MAIN_SOURCES} src/server.cpp)
+    target_link_libraries(server PRIVATE nlohmann_json::nlohmann_json)
     target_include_directories(server PRIVATE ${crow_SOURCE_DIR}/include)
     target_include_directories(server PRIVATE ${asio_SOURCE_DIR}/asio/include)
+    target_link_libraries(server PRIVATE jwt-cpp::jwt-cpp)
+
+
+    add_executable(tmp src/tmp.cpp)
+    target_link_libraries(tmp PRIVATE nlohmann_json::nlohmann_json)
+    target_include_directories(tmp PRIVATE ${crow_SOURCE_DIR}/include)
+    target_include_directories(tmp PRIVATE ${asio_SOURCE_DIR}/asio/include)
+    target_link_libraries(tmp PRIVATE jwt-cpp::jwt-cpp)
 
 
 else ()
