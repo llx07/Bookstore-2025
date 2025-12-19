@@ -53,12 +53,12 @@
                         placeholder="Please enter user ID" />
                 </NFormItem>
 
-                <NFormItem label="Password" path="password">
+                <NFormItem label="Password:" path="password">
                     <NInput v-model:value="loginForm.password" maxlength="30" show-count type="password"
                         placeholder="Please enter password" />
                 </NFormItem>
             </NForm>
-            <template #footer>
+            <template #action>
                 <NFlex class="login-card-footer" justify="end">
                     <NButton @click="showLoginModal = false">取消</NButton>
                     <NButton type="primary" @click="handleLoginSubmit" :disabled="!loginBtnAvailable">确定</NButton>
@@ -159,8 +159,11 @@ async function handleLoginSubmit() {
                         message.error("Token unavailable. Logging out current account.");
                         loginStackStore.logout();
                     }
-                    if (error.status === 400) {
+                    else if (error.status === 400) {
                         message.error('Failed   ' + error.response?.data.message);
+                    }
+                    else{
+                        message.error('Connection failed ' + error.message)
                     }
                 }
                 else {
@@ -214,10 +217,11 @@ const handleLoginBtn = () => {
     // loginStackStore.login({ userid: "123", username: "456" + Date.now().toLocaleString(), privilege: 7, token: "123", selected_id: 0 });
     showLoginModal.value = true;
 }
+
+
 const handleLogoutBtn = async () => {
-    // TODO(llx) add logout request here.
-    loginStackStore.logout();
-    console.log(currentUser.value?.userid, isGuestUser.value);
+    // console.log(currentUser.value?.userid, isGuestUser.value);
+    console.log(loginStackStore.stack);
     const headers: { [key: string]: string } = {
         'Content-Type': 'application/json',
     };
@@ -226,13 +230,28 @@ const handleLogoutBtn = async () => {
         headers["Authorization"] = `Bearer ${token}`;
     }
     try {
+        console.log(123)
         await axios.post(
             API_BASE_URL + '/api/v1/auth/logout',
             {},
             { headers: headers });
+        console.log(456)
     } catch (error) {
-
-    }
+        if (axios.isAxiosError(error)) {
+            console.log(error)
+            if (error.status === 401) {
+                message.error("Token unavailable. Logging out current account.");
+                loginStackStore.logout();
+            }
+            if (error.status === 400) {
+                message.error('Failed   ' + error.response?.data.message);
+            }
+        }
+        else {
+            message.error('Unknown error: ' + error);
+        }
+    } 
+    loginStackStore.logout();
 }
 </script>
 

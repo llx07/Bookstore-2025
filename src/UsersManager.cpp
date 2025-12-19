@@ -21,7 +21,9 @@ bool UsersManager::useridExists(const User::USERID_T& userid) {
 }
 User UsersManager::getUserByUserid(const User::USERID_T& userid) {
     auto result = user_data.query(userid);
-    assert(!result.empty());
+    if (result.empty()) {
+        throw std::runtime_error{"User does not exist"};
+    }
     return result[0];
 }
 bool UsersManager::isPasswordCorrect(const User::USERID_T& userid,

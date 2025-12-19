@@ -41,11 +41,11 @@ export const useLoginStackStore = defineStore('loginStack', {
                 this.saveToLocalStorage();
             }
         },
-        getCurrentUser() {
-            return this.stack[0] || null;
+        getCurrentUser():UserItem {
+            return this.stack[0]!;
         },
         getCurrentToken(){
-            return this.stack[0]?.token;
+            return this.stack[0]!.token;
         }
     },
 });

@@ -30,3 +30,20 @@ export const passwordValidator = (rule: FormItemRule, value: any): boolean | Err
   }
   return true;
 }
+
+
+export const usernameValidator = (rule: FormItemRule, value: any): boolean | Error =>{
+  if (!value) {
+    if(rule.required)return new Error('Field cannot be empty.');
+    else return true;
+  }
+  
+  const regex = /^[\x20-\x7e]+$/;
+  if (!regex.test(value)) {
+    return new Error('Username can only contains printable ASCII characters.');
+  }
+  if (value.length > 30) {
+    return new Error('The maximum length of username is 30 characters.');
+  }
+  return true;
+}

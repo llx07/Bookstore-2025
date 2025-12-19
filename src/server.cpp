@@ -1,7 +1,9 @@
 #include <jwt-cpp/jwt.h>
 
 #include <nlohmann/json.hpp>
+#include <sstream>
 
+#include "Commands/BookCommands.hpp"
 #include "Commands/UserCommands.hpp"
 #include "Parser/FieldParser.hpp"
 #include "UsersManager.hpp"
@@ -77,7 +79,7 @@ int main() {
             // 1. Content-Type 必须要是 json
             if (auto content_type = req.get_header_value("Content-Type");
                 content_type.find("application/json") == std::string::npos) {
-                json err{{"message", "Invalid Argument"}};
+                json err{{"message", "Only JSON body is supported"}};
                 res.code = 400;
                 res.write(err.dump());
                 res.set_header("Content-Type", "application/json");
@@ -89,23 +91,13 @@ int main() {
             try {
                 j = json::parse(req.body);
             } catch (const std::exception& e) {
-                json err{{"message", "Invalid Argument"}};
+                json err{{"message", e.what()}};
                 res.code = 400;
                 res.write(err.dump());
                 res.set_header("Content-Type", "application/json");
                 res.end();
                 return;
             }
-
-            if (!j.contains("userid")) {
-                json err{{"message", "Invalid Argument"}};
-                res.code = 400;
-                res.write(err.dump());
-                res.set_header("Content-Type", "application/json");
-                res.end();
-                return;
-            }
-
             try {
                 auto userid = parse_userid(j["userid"]);
                 auto cmd = j.contains("password") ? std::make_unique<SwitchUserCommand>(
@@ -148,14 +140,268 @@ int main() {
     CROW_ROUTE(app, "/api/v1/auth/logout")
         .methods("POST"_method)([&app](const crow::request& req, crow::response& res) {
             auto& ctx = app.get_context<AuthMiddleware>(req);
+            // TODO(llx) add this token to blacklist.
             if (util::toString(ctx.userid) == "<GUEST>") {
                 res.code = 400;
                 json j;
-                j["message"] = "";
+                j["message"] = "Cannot log out guest user.";
+                res.write(j.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
             }
 
-            LogoutCommand().execute(ctx.userid, ctx.selected_id, std::cout);
+            try {
+                LogoutCommand().execute(ctx.userid, ctx.selected_id, std::cout);
+                json j;
+                j["message"] = "Success.";
+                res.write(j.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            } catch (const std::exception& e) {
+                json err{{"message", e.what()}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+            }
         });
+
+    CROW_ROUTE(app, "/api/v1/users")
+        .methods("POST"_method)([&app](const crow::request& req, crow::response& res) {
+            auto& ctx = app.get_context<AuthMiddleware>(req);
+            if (auto content_type = req.get_header_value("Content-Type");
+                content_type.find("application/json") == std::string::npos) {
+                json err{{"message", "Only JSON body is supported"}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+            json j;
+            try {
+                j = json::parse(req.body);
+            } catch (const std::exception& e) {
+                json err{{"message", e.what()}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+
+            if (!j.contains("privilege")) {
+                try {
+                    auto userid = parse_userid(j["userid"]);
+                    auto password = parse_password(j["password"]);
+                    auto username = parse_username(j["username"]);
+                    RegisterCommand(userid, password, username)
+                        .execute(ctx.userid, ctx.selected_id, std::cout);
+                    json j;
+                    j["message"] = "Success.";
+                    res.code = 200;
+                    res.write(j.dump());
+                    res.set_header("Content-Type", "application/json");
+                    res.end();
+                } catch (const std::exception& e) {
+                    json err{{"message", e.what()}};
+                    res.code = 400;
+                    res.write(err.dump());
+                    res.set_header("Content-Type", "application/json");
+                    res.end();
+                }
+            } else {
+                try {
+                    auto userid = parse_userid(j["userid"]);
+                    auto password = parse_password(j["password"]);
+                    auto username = parse_username(j["username"]);
+                    int privilege = j["privilege"].get<int>();
+                    AddUserCommand(userid, password, privilege, username)
+                        .execute(ctx.userid, ctx.selected_id, std::cout);
+                    json j;
+                    j["message"] = "Success.";
+                    res.code = 200;
+                    res.write(j.dump());
+                    res.set_header("Content-Type", "application/json");
+                    res.end();
+                } catch (const std::exception& e) {
+                    json err{{"message", e.what()}};
+                    res.code = 400;
+                    res.write(err.dump());
+                    res.set_header("Content-Type", "application/json");
+                    res.end();
+                }
+            }
+        });
+    CROW_ROUTE(app, "/api/v1/users/<string>/password")
+        .methods("PATCH"_method)(
+            [&app](const crow::request& req, crow::response& res, const std::string& userid_str) {
+                auto& ctx = app.get_context<AuthMiddleware>(req);
+                if (auto content_type = req.get_header_value("Content-Type");
+                    content_type.find("application/json") == std::string::npos) {
+                    json err{{"message", "Only JSON body is supported"}};
+                    res.code = 400;
+                    res.write(err.dump());
+                    res.set_header("Content-Type", "application/json");
+                    res.end();
+                    return;
+                }
+                json j;
+                try {
+                    j = json::parse(req.body);
+                } catch (const std::exception& e) {
+                    json err{{"message", e.what()}};
+                    res.code = 400;
+                    res.write(err.dump());
+                    res.set_header("Content-Type", "application/json");
+                    res.end();
+                    return;
+                }
+
+                try {
+                    auto new_password = parse_password(j["new_password"]);
+                    auto userid = parse_userid(userid_str);
+                    if (j.contains("current_password")) {
+                        auto current_password = parse_password(j["current_password"]);
+                        ChangePasswordCommand(userid, current_password, new_password)
+                            .execute(ctx.userid, ctx.selected_id, std::cout);
+                    } else {
+                        ChangePasswordCommand(userid, new_password)
+                            .execute(ctx.userid, ctx.selected_id, std::cout);
+                    }
+                    json j;
+                    j["message"] = "Success.";
+                    res.code = 200;
+                    res.write(j.dump());
+                    res.set_header("Content-Type", "application/json");
+                    res.end();
+                    return;
+                } catch (const std::exception& e) {
+                    json err{{"message", e.what()}};
+                    res.code = 400;
+                    res.write(err.dump());
+                    res.set_header("Content-Type", "application/json");
+                    res.end();
+                }
+            });
+    CROW_ROUTE(app, "/api/v1/users/<string>")
+        .methods("DELETE"_method)(
+            [&app](const crow::request& req, crow::response& res, const std::string& userid_str) {
+                auto& ctx = app.get_context<AuthMiddleware>(req);
+                try {
+                    auto userid = parse_userid(userid_str);
+                    DeleteUserCommand(userid).execute(ctx.userid, ctx.selected_id, std::cout);
+                    json j;
+                    j["message"] = "Success.";
+                    res.code = 200;
+                    res.write(j.dump());
+                    res.set_header("Content-Type", "application/json");
+                    res.end();
+                    return;
+                } catch (const std::exception& e) {
+                    json err{{"message", e.what()}};
+                    res.code = 400;
+                    res.write(err.dump());
+                    res.set_header("Content-Type", "application/json");
+                    res.end();
+                    return;
+                }
+            });
+
+    CROW_ROUTE(app, "/api/v1/books")
+        .methods("GET"_method)([&app](const crow::request& req, crow::response& res) {
+            auto& ctx = app.get_context<AuthMiddleware>(req);
+
+            try {
+                const char* isbn_ptr = req.url_params.get("isbn");
+                const char* name_ptr = req.url_params.get("name");
+                const char* author_ptr = req.url_params.get("author");
+                const char* keyword_ptr = req.url_params.get("keyword");
+
+                std::string isbn = isbn_ptr ? isbn_ptr : "";
+                std::string name = name_ptr ? name_ptr : "";
+                std::string author = author_ptr ? author_ptr : "";
+                std::string keyword = keyword_ptr ? keyword_ptr : "";
+
+                int param_count = 0;
+                if (isbn_ptr) {
+                    ++param_count;
+                }
+                if (name_ptr) {
+                    ++param_count;
+                }
+                if (author_ptr) {
+                    ++param_count;
+                }
+                if (keyword_ptr) {
+                    ++param_count;
+                }
+
+                if (param_count > 1) {
+                    json err;
+                    err["message"] = "Too many parameters.";
+                    res.code = 400;
+                    res.write(err.dump());
+                    res.set_header("Content-Type", "application/json");
+                    res.end();
+                    return;
+                }
+
+                ShowCommand cmd;
+                if (isbn_ptr) {
+                    cmd.ISBN = parseISBN(isbn);
+                }
+                if (name_ptr) {
+                    cmd.name = parseBookName(name);
+                }
+                if (author_ptr) {
+                    cmd.author = parseAuthor(author);
+                }
+                if (keyword_ptr) {
+                    cmd.keyword = parseKeyword(keyword);
+                }
+
+                std::ostringstream oss;
+                cmd.execute(ctx.userid, ctx.selected_id, oss);
+                std::string data = oss.str();
+                auto lines = util::split(data, '\n');
+                json json_res = json::array();
+                for (const std::string& line : lines) {
+                    if (line.empty()) {
+                        continue;
+                    }
+                    auto fields = util::split(line, '\t');
+                    try {
+                        json book;
+                        if (fields.size() < 6) continue;
+                        book["isbn"] = fields[0];
+                        book["name"] = fields[1];
+                        book["author"] = fields[2];
+                        book["keyword"] = fields[3];
+                        book["price"] = fields[4];
+                        book["quantity"] = fields[5];
+                        json_res.push_back(book);
+                    } catch (const std::exception& e) {
+                        CROW_LOG_WARNING << "show book error: " << e.what() << '\n';
+                        continue;
+                    }
+                }
+                res.code = 200;
+                res.set_header("Content-Type", "application/json");
+                res.write(json_res.dump());
+                res.end();
+            } catch (const std::exception& e) {
+                json err{{"message", e.what()}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+        });
+
     app.port(10086).multithreaded().run();
     return 0;
 }
