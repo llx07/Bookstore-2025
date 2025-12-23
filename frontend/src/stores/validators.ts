@@ -47,3 +47,65 @@ export const usernameValidator = (rule: FormItemRule, value: any): boolean | Err
   }
   return true;
 }
+
+export const ISBNValidator = (rule: FormItemRule, value: any): boolean | Error => {
+  if (!value) {
+    if(rule.required)return new Error('Field cannot be empty.');
+    else return true;
+  }
+  
+  const regex = /^[\x20-\x7e]+$/;
+  if (!regex.test(value)) {
+    return new Error('ISBN can only contains printable ASCII characters.');
+  }
+  if (value.length > 20) {
+    return new Error('The maximum length of password is 20 characters.');
+  }
+  return true;
+}
+export const bookNameValidator = (rule: FormItemRule, value: any): boolean | Error => {
+  if (!value) {
+    if(rule.required)return new Error('Field cannot be empty.');
+    else return true;
+  }
+  
+  const regex = /^[\x20-\x21\x23-\x7e]+$/;
+  if (!regex.test(value)) {
+    return new Error('Book name can only contains printable ASCII characters.');
+  }
+  if (value.length > 60) {
+    return new Error('The maximum length of password is 20 characters.');
+  }
+  return true;
+}
+export const authorValidator =  (rule: FormItemRule, value: any): boolean | Error => {
+  if (!value) {
+    if(rule.required)return new Error('Field cannot be empty.');
+    else return true;
+  }
+  
+  const regex = /^[\x20-\x21\x23-\x7e]+$/;
+  if (!regex.test(value)) {
+    return new Error('author can only contains printable ASCII characters.');
+  }
+  if (value.length > 60) {
+    return new Error('The maximum length of password is 20 characters.');
+  }
+  return true;
+}
+
+export const keywordValidator =  (rule: FormItemRule, value: any): boolean | Error => {
+  if (!value) {
+    if(rule.required)return new Error('Field cannot be empty.');
+    else return true;
+  }
+  
+  const regex = /^[\x20-\x21\x23-\x7e]+$/;
+  if (!regex.test(value)) {
+    return new Error('keyword can only contains printable ASCII characters.');
+  }
+  if (value.length > 60) {
+    return new Error('The maximum length of password is 20 characters.');
+  }
+  return true;
+}

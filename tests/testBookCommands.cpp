@@ -114,7 +114,7 @@
 //                             Catch::Matchers::ContainsSubstring("privilege not enough to
 //                             operate"));
 //     }
-//     SECTION("IBSN not exist") {
+//     SECTION("ISBN not exist") {
 //         session.loginPush(util::toArray<User::USERID_T>("salesman"));
 //         BuyCommand cmd{util::toArray<Book::ISBN_T>("ISBN3"), 100};
 //         REQUIRE_THROWS_WITH(cmd.execute(session, TODO, TODO),

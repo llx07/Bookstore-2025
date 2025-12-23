@@ -10,7 +10,7 @@
       <n-card class="user-info-card" :bordered="false">
         <n-flex vertical style='align-items:"center"'>
           <n-text depth="1" style="font-size: 20px; font-weight: 600">
-            Welcome Back, {{ loginStackStore.getCurrentUser().username }}
+            Welcome Back, {{ loginStackStore.getCurrentUser().username }} !
           </n-text>
           <n-text depth="3">
             User ID: <n-tag size="small" round type="info">{{ loginStackStore.getCurrentUser().userid }}</n-tag>

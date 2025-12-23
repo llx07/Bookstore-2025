@@ -402,6 +402,40 @@ int main() {
             }
         });
 
+    CROW_ROUTE(app, "/api/v1/users/select/<string>")
+        .methods("POST"_method)([&app](const crow::request& req, crow::response& res,
+                                       const std::string& isbn_str) {
+            auto& ctx = app.get_context<AuthMiddleware>(req);
+            try {
+                const Book::ISBN_T& isbn = parseISBN(isbn_str);
+                SelectCommand(isbn).execute(ctx.userid, ctx.selected_id, std::cout);
+                const auto time = jwt::date::clock::now();
+                auto token =
+                    jwt::create()
+                        .set_issuer("linlexiao")
+                        .set_payload_claim("userid", jwt::claim(util::toString(ctx.userid)))
+                        .set_payload_claim("selected_id",
+                                           jwt::claim(picojson::value(int64_t{ctx.selected_id})))
+                        .set_issued_at(time)
+                        .set_expires_at(time + std::chrono::hours(24))
+                        .sign(jwt::algorithm::hs256{SECRET_KEY});
+                json j;
+                j["access_token"] = token;
+                res.code = 200;
+                res.write(j.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            } catch (const std::exception& e) {
+                json err{{"message", e.what()}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+        });
+
     app.port(10086).multithreaded().run();
     return 0;
 }

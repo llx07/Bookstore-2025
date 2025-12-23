@@ -1,4 +1,9 @@
 <template>
+    <NText>Selected Book ID:
+        <NTag round type="info">
+            {{ loginStackStore.getCurrentUser().selected_id }}
+        </NTag>
+    </NText>
     <n-grid x-gap="12" y-gap="12" :cols="2">
 
         <n-gi v-if="loginStackStore.getCurrentUser().privilege >= 1">
@@ -13,30 +18,89 @@
             </NCard>
         </n-gi>
     </n-grid>
+    <NModal v-model:show="showShowModal">
+        <n-card closable @close="showShowModal = false" style="width: 600px" title="Show" :bordered="false" size="huge"
+            role="dialog" aria-modal="true">
 
+            <NFormItem label="Type:" path="type">
+                <NSelect v-model:value="showSelectValue" :options="showSelecetOptions"></NSelect>
+            </NFormItem>
+            <NForm ref="showFormRef" :model="showForm" :rules="showRules">
 
-    <!-- <NModal v-model:show="showXXXModal">
-        <n-card closable @close="showXXXModal = false" style="width: 600px" title="XXX" :bordered="false"
+                <NFormItem label="ISBN:" path="isbn" v-if="showSelectValue === 'isbn'">
+                    <NInput v-model:value="showForm.isbn" maxlength="20" show-count placeholder="Please enter ISBN" />
+                </NFormItem>
+                <NFormItem label="Book name:" path="name" v-if="showSelectValue === 'name'">
+                    <NInput v-model:value="showForm.name" maxlength="30" show-count
+                        placeholder="Please enter book name" />
+                </NFormItem>
+                <NFormItem label="Author:" path="author" v-if="showSelectValue === 'author'">
+                    <NInput v-model:value="showForm.author" maxlength="30" show-count
+                        placeholder="Please enter author name" />
+                </NFormItem>
+                <NFormItem label="Keyword:" path="keyword" v-if="showSelectValue === 'keyword'">
+                    <NInput v-model:value="showForm.keyword" maxlength="30" show-count
+                        placeholder="Please enter keyword (only one is allowed)" />
+                </NFormItem>
+                <NDataTable :columns="showColumns" :data="showResults" >
+
+                </NDataTable>
+                <NFlex justify="end">
+                    <NButton type="primary" @click="handleQuery">Query</NButton>
+                </NFlex>
+            </NForm>
+        </n-card>
+    </NModal>
+    <!-- <NModal v-model:show="showShowModal">
+        <n-card closable @close="showShowModal = false" style="width: 600px" title="Show" :bordered="false"
             size="huge" role="dialog" aria-modal="true">
-            <NForm ref="xxxFormRef" :model="xxxForm" :rules="xxxRules">
+            <NForm ref="showFormRef" :model="showForm" :rules="showRules">
 
                 <NFormItem label="User ID:" path="userid">
-                    <NInput v-model:value="xxxForm.userid" maxlength="30" show-count
+                    <NInput v-model:value="showForm.userid" maxlength="30" show-count
                         placeholder="Please enter user ID" />
                 </NFormItem>
                 <NFormItem label="Username" path="username">
-                    <NInput v-model:value="xxxForm.username" maxlength="30" show-count
+                    <NInput v-model:value="showForm.username" maxlength="30" show-count
                         placeholder="Please enter username" />
                 </NFormItem>
                 <NFormItem label="Password" path="password">
-                    <NInput v-model:value="xxxForm.password" maxlength="30" show-count type="password"
+                    <NInput v-model:value="showForm.password" maxlength="30" show-count type="password"
                         placeholder="Please enter password" />
                 </NFormItem>
             </NForm>
             <template #action>
                 <NFlex class="login-card-footer" justify="end">
-                    <NButton @click="showXXXModal = false">取消</NButton>
-                    <NButton type="primary" @click="handleXXXSubmit" :disabled="!xxxButtonAvailable">确定
+                    <NButton @click="showShowModal = false">取消</NButton>
+                    <NButton type="primary" @click="handleShowSubmit" :disabled="!showButtonAvailable">确定
+                    </NButton>
+                </NFlex>
+            </template>
+        </n-card>
+    </NModal> -->
+
+    <!-- <NModal v-model:show="showShowModal">
+        <n-card closable @close="showShowModal = false" style="width: 600px" title="Show" :bordered="false"
+            size="huge" role="dialog" aria-modal="true">
+            <NForm ref="showFormRef" :model="showForm" :rules="showRules">
+
+                <NFormItem label="User ID:" path="userid">
+                    <NInput v-model:value="showForm.userid" maxlength="30" show-count
+                        placeholder="Please enter user ID" />
+                </NFormItem>
+                <NFormItem label="Username" path="username">
+                    <NInput v-model:value="showForm.username" maxlength="30" show-count
+                        placeholder="Please enter username" />
+                </NFormItem>
+                <NFormItem label="Password" path="password">
+                    <NInput v-model:value="showForm.password" maxlength="30" show-count type="password"
+                        placeholder="Please enter password" />
+                </NFormItem>
+            </NForm>
+            <template #action>
+                <NFlex class="login-card-footer" justify="end">
+                    <NButton @click="showShowModal = false">取消</NButton>
+                    <NButton type="primary" @click="handleShowSubmit" :disabled="!showButtonAvailable">确定
                     </NButton>
                 </NFlex>
             </template>
@@ -45,7 +109,15 @@
 </template>
 <script setup lang="ts">
 import { useLoginStackStore } from '@/stores/loginStack';
-import { passwordValidator, usernameValidator, userIDValidator } from '@/stores/validators';
+import {
+    passwordValidator,
+    usernameValidator,
+    userIDValidator,
+    ISBNValidator,
+    bookNameValidator,
+    authorValidator,
+    keywordValidator
+} from '@/stores/validators';
 import {
     NCard,
     NGrid,
@@ -56,45 +128,103 @@ import {
     NInput,
     NFormItem,
     NForm,
+    NText,
+    NTag,
     type FormInst,
     useMessage,
     NSelect,
-    type FormItemRule
+    type FormItemRule,
+    NDataTable
 } from 'naive-ui';
-import { computed, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import axios, { type AxiosResponse, AxiosError } from 'axios';
 import { API_BASE_URL } from '@/constants'
 
 const loginStackStore = useLoginStackStore();
 const message = useMessage()
 
+const showColumns = [
+    {
+      title: 'ISBN',
+      key: 'isbn'
+    },
+    {
+      title: 'Book Name',
+      key: 'name'
+    },
+    {
+      title: 'Author',
+      key: 'author'
+    },
+    {
+      title: 'Keywords',
+      key: 'keyword'
+    },
+    {
+      title: 'Price',
+      key: 'price'
+    },
+    {
+      title: 'Quantity',
+      key: 'quantity'
+    }
+]
+const showSelectValue = ref("None");
+const showSelecetOptions = [
+    {
+        label: 'None',
+        value: 'None',
+    },
+    {
+        label: 'ISBN',
+        value: 'isbn',
+    },
+    {
+        label: 'Book name',
+        value: 'name',
+    },
+    {
+        label: 'Author',
+        value: 'author',
+    },
+    {
+        label: 'Keyword',
+        value: 'keyword',
+    },
+]
+const showResults = ref([]);
 const showShowModal = ref(false);
 const showButtonAvailable = ref(true)
 const showForm = ref({
-    userid: '',
-    password: '',
-    username: ''
+    isbn: '',
+    name: '',
+    author: '',
+    keyword: '',
 });
 const showFormRef = ref<FormInst | null>(null);
 const showRules = {
-    userid: {
+    isbn: {
         required: true, trigger: 'blur',
-        validator: userIDValidator
+        validator: ISBNValidator
     },
-    username: {
+    name: {
         required: true, trigger: 'blur',
-        validator: usernameValidator
+        validator: bookNameValidator
     },
-    password: {
+    author: {
         required: true, trigger: 'blur',
-        validator: passwordValidator
+        validator: authorValidator
+    },
+    keyword: {
+        required: true, trigger: 'blur',
+        validator: keywordValidator
     },
 };
-const handleShowSubmit = () => {
+const handleQuery = () => {
     console.log("handle show")
-    .value?.validate(async (errors) => {
+    showFormRef.value?.validate(async (errors) => {
         showButtonAvailable.value = false;
-         console.log("handle 1")
+        console.log("handle 1")
         if (!errors) {
             try {
                 const headers: { [key: string]: string } = {
@@ -104,22 +234,30 @@ const handleShowSubmit = () => {
                 if (token) {
                     headers["Authorization"] = `Bearer ${token}`;
                 }
-                const userid = showForm.value.userid;
-                const password = showForm.value.password;
-                const username = showForm.value.username;
-                const data: { [key: string]: string } = {
-                    userid: userid,
-                    password: password,
-                    username: username
-                };
 
-                await axios.post(
-                    API_BASE_URL + '/api/v1/users/?????????',
-                    data,
-                    { headers: headers });
+                const params: {[key: string] : string} = {};
+                console.log(showSelectValue.value)
+                if(showSelectValue.value=="isbn"){
+                    params["isbn"] = showForm.value.isbn;
+                }
+                if(showSelectValue.value=="name"){
+                    params["name"] = showForm.value.name;
+                }
+                if(showSelectValue.value=="author"){
+                    params["author"] = showForm.value.author;
+                }
+                if(showSelectValue.value=="keyword"){
+                    params["keyword"] = showForm.value.keyword;
+                }
+                console.log(params);
+                const response = await axios.get(
+                    API_BASE_URL + '/api/v1/books',
+                    { params:params, headers: headers });
 
                 message.success("Show success.");
-                showShowModal.value = false;
+
+                showResults.value = response.data;
+                console.log("data", response.data);
             } catch (error) {
                 if (axios.isAxiosError(error)) {
                     console.log(error)
@@ -142,15 +280,15 @@ const handleShowSubmit = () => {
         showButtonAvailable.value = true;
     })
 }
-// const showXXXModal = ref(false);
-// const xxxButtonAvailable = ref(true)
-// const xxxForm = ref({
+// const showShowModal = ref(false);
+// const showButtonAvailable = ref(true)
+// const showForm = ref({
 //     userid: '',
 //     password: '',
 //     username: ''
 // });
-// const xxxFormRef = ref<FormInst | null>(null);
-// const xxxRules = {
+// const showFormRef = ref<FormInst | null>(null);
+// const showRules = {
 //     userid: {
 //         required: true, trigger: 'blur',
 //         validator: userIDValidator
@@ -164,10 +302,10 @@ const handleShowSubmit = () => {
 //         validator: passwordValidator
 //     },
 // };
-// const handleXXXSubmit = () => {
-//     console.log("handle xxx")
+// const handleShowSubmit = () => {
+//     console.log("handle show")
 //     .value?.validate(async (errors) => {
-//         xxxButtonAvailable.value = false;
+//         showButtonAvailable.value = false;
 //          console.log("handle 1")
 //         if (!errors) {
 //             try {
@@ -178,9 +316,9 @@ const handleShowSubmit = () => {
 //                 if (token) {
 //                     headers["Authorization"] = `Bearer ${token}`;
 //                 }
-//                 const userid = xxxForm.value.userid;
-//                 const password = xxxForm.value.password;
-//                 const username = xxxForm.value.username;
+//                 const userid = showForm.value.userid;
+//                 const password = showForm.value.password;
+//                 const username = showForm.value.username;
 //                 const data: { [key: string]: string } = {
 //                     userid: userid,
 //                     password: password,
@@ -192,8 +330,8 @@ const handleShowSubmit = () => {
 //                     data,
 //                     { headers: headers });
 
-//                 message.success("XXX success.");
-//                 showXXXModal.value = false;
+//                 message.success("Show success.");
+//                 showShowModal.value = false;
 //             } catch (error) {
 //                 if (axios.isAxiosError(error)) {
 //                     console.log(error)
@@ -213,7 +351,7 @@ const handleShowSubmit = () => {
 //         else {
 //             message.error("Invalid Input.")
 //         }
-//         xxxButtonAvailable.value = true;
+//         showButtonAvailable.value = true;
 //     })
 // }
 </script>
