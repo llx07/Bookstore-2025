@@ -89,7 +89,7 @@ int BooksManager::getIdByISBN(const Book::ISBN_T& ISBN) {
 }
 void BooksManager::removeData(const Book::ISBN_T& ISBN) {
     int id = getIdByISBN(ISBN);
-    assert(id);
+    if(!id)return;
     Book book;
     main_data.read(book, id);
     isbn_index.erase(book.ISBN, id);

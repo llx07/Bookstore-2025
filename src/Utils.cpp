@@ -105,6 +105,9 @@ std::string decimalToString(long long val) {
 }
 
 void printTableHead(std::ostream& out, const std::vector<int>& lengths) {
+    if (typeid(out) == typeid(std::ostringstream)) {
+        return;
+    }
     out << "┌";
     for (int i = 0; i < lengths.size(); i++) {
         for (int j = 0; j < lengths[i]; j++) out << "─";
@@ -117,6 +120,9 @@ void printTableHead(std::ostream& out, const std::vector<int>& lengths) {
     out << "\n";
 }
 void printTableMiddle(std::ostream& out, const std::vector<int>& lengths) {
+    if (typeid(out) == typeid(std::ostringstream)) {
+        return;
+    }
     out << "├";
     for (int i = 0; i < lengths.size(); i++) {
         for (int j = 0; j < lengths[i]; j++) out << "─";
@@ -129,6 +135,9 @@ void printTableMiddle(std::ostream& out, const std::vector<int>& lengths) {
     out << "\n";
 }
 void printTableBottom(std::ostream& out, const std::vector<int>& lengths) {
+    if (typeid(out) == typeid(std::ostringstream)) {
+        return;
+    }
     out << "└";
     for (int i = 0; i < lengths.size(); i++) {
         for (int j = 0; j < lengths[i]; j++) out << "─";
@@ -142,6 +151,13 @@ void printTableBottom(std::ostream& out, const std::vector<int>& lengths) {
 }
 void printTableBody(std::ostream& out, const std::vector<int>& lengths,
                     const std::vector<std::string>& head) {
+    if (typeid(out) == typeid(std::ostringstream)) {
+        for(const auto& h : head) {
+            out << h << "\t";
+        }
+        out << '\n';
+        return;
+    }
     assert(head.size() == lengths.size());
     out << "│";
 

@@ -49,6 +49,7 @@ export const usernameValidator = (rule: FormItemRule, value: any): boolean | Err
 }
 
 export const ISBNValidator = (rule: FormItemRule, value: any): boolean | Error => {
+  console.log(rule, value)
   if (!value) {
     if(rule.required)return new Error('Field cannot be empty.');
     else return true;

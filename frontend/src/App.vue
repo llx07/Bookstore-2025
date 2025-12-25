@@ -3,10 +3,10 @@
     <NLayout has-sider position="absolute" class="main-layout">
       <n-layout-header :inverted="true" bordered style="height: 64px" position="absolute">
         <n-flex justify="space-between" style="height: 100%; align-items: center; padding: 0 1em;">
-            <div class="app-title">
-              Bookstore Management System
-            </div>
-            <UserIndicator />
+          <div class="app-title">
+            Bookstore Management System
+          </div>
+          <UserIndicator />
         </n-flex>
 
         <!-- </header> -->
@@ -40,7 +40,7 @@ import UserIndicator from './components/UserIndicator.vue';
 import { h } from 'vue'
 import type { Component } from 'vue'
 import type { MenuOption } from 'naive-ui'
-import { UserCog, Home, Book } from "@vicons/fa"
+import { UserCog, Home, Book, ListAlt } from "@vicons/fa"
 
 import { RouterLink } from 'vue-router'
 function renderIcon(icon: Component) {
@@ -62,6 +62,11 @@ const menuOptions: MenuOption[] = [
     key: 'book',
     icon: renderIcon(Book)
   },
+  {
+    label: () => h(RouterLink, { to: { name: 'log' } }, { default: () => 'Logs' }),
+    key: 'log',
+    icon: renderIcon(ListAlt)
+  }
 ]
 </script>
 

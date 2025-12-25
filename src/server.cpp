@@ -5,6 +5,7 @@
 
 #include "Commands/BookCommands.hpp"
 #include "Commands/UserCommands.hpp"
+#include "Commands/LogCommands.hpp"
 #include "Parser/FieldParser.hpp"
 #include "UsersManager.hpp"
 #include "crow.h"
@@ -421,11 +422,236 @@ int main() {
                         .sign(jwt::algorithm::hs256{SECRET_KEY});
                 json j;
                 j["access_token"] = token;
+                j["selected_id"] = ctx.selected_id;
                 res.code = 200;
                 res.write(j.dump());
                 res.set_header("Content-Type", "application/json");
                 res.end();
                 return;
+            } catch (const std::exception& e) {
+                json err{{"message", e.what()}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+        });
+
+    CROW_ROUTE(app, "/api/v1/books/buy")
+        .methods("POST"_method)([&app](const crow::request& req, crow::response& res) {
+            auto& ctx = app.get_context<AuthMiddleware>(req);
+            if (auto content_type = req.get_header_value("Content-Type");
+                content_type.find("application/json") == std::string::npos) {
+                json err{{"message", "Only JSON body is supported"}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+            json j;
+            try {
+                j = json::parse(req.body);
+            } catch (const std::exception& e) {
+                json err{{"message", e.what()}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+
+            try {
+                auto isbn = parseISBN(j["isbn"]);
+                auto quantity = parseQuantity(j["quantity"]);
+                std::ostringstream oss;
+                BuyCommand(isbn, quantity).execute(ctx.userid, ctx.selected_id, oss);
+
+                res.code = 200;
+                json j;
+                j["message"] = oss.str();
+
+                res.write(j.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            } catch (const std::exception& e) {
+                json err{{"message", e.what()}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+        });
+    CROW_ROUTE(app, "/api/v1/books/modify")
+        .methods("PATCH"_method)([&app](const crow::request& req, crow::response& res) {
+            auto& ctx = app.get_context<AuthMiddleware>(req);
+            if (auto content_type = req.get_header_value("Content-Type");
+                content_type.find("application/json") == std::string::npos) {
+                json err{{"message", "Only JSON body is supported"}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+            json j;
+            try {
+                j = json::parse(req.body);
+            } catch (const std::exception& e) {
+                json err{{"message", e.what()}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+
+            try {
+                ModifyCommand cmd;
+                if (j.contains("isbn")) cmd.new_ISBN = parseISBN(j["isbn"]);
+                if (j.contains("name")) cmd.new_name = parseBookName(j["name"]);
+                if (j.contains("author")) cmd.new_author = parseAuthor(j["author"]);
+                if (j.contains("keyword")) cmd.new_keyword = parseKeyword(j["keyword"]);
+                if (j.contains("price")) cmd.new_price = parsePrice(j["price"]);
+
+                cmd.execute(ctx.userid, ctx.selected_id, std::cout);
+
+                res.code = 200;
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            } catch (const std::exception& e) {
+                json err{{"message", e.what()}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+        });
+    CROW_ROUTE(app, "/api/v1/books/import")
+        .methods("POST"_method)([&app](const crow::request& req, crow::response& res) {
+            auto& ctx = app.get_context<AuthMiddleware>(req);
+            if (auto content_type = req.get_header_value("Content-Type");
+                content_type.find("application/json") == std::string::npos) {
+                json err{{"message", "Only JSON body is supported"}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+            json j;
+            try {
+                j = json::parse(req.body);
+            } catch (const std::exception& e) {
+                json err{{"message", e.what()}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+
+            try {
+                auto quantity = parseQuantity(j["quantity"]);
+                auto total_cost = parsePrice(j["total_cost"]);
+                std::ostringstream oss;
+                ImportCommand(quantity, total_cost).execute(ctx.userid, ctx.selected_id, std::cout);
+                res.code = 200;
+                json j;
+                res.write(j.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            } catch (const std::exception& e) {
+                json err{{"message", e.what()}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+        });
+
+    CROW_ROUTE(app, "/api/v1/logs/show_finance")
+        .methods("GET"_method)([&app](const crow::request& req, crow::response& res) {
+            auto& ctx = app.get_context<AuthMiddleware>(req);
+            try {
+                if(req.url_params.get("count")){
+                    int count = parseCount(req.url_params.get("count"));
+                    ShowFinanceCommand cmd(count);
+                    std::ostringstream oss;
+                    cmd.execute(ctx.userid, ctx.selected_id, oss);
+                    res.write(oss.str());
+                    res.end();
+                    return;
+                }
+                ShowFinanceCommand cmd;
+                std::ostringstream oss;
+                cmd.execute(ctx.userid, ctx.selected_id, oss);
+                res.write(oss.str());
+                res.end();
+            } catch (const std::exception& e) {
+                json err{{"message", e.what()}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+        });
+
+    CROW_ROUTE(app, "/api/v1/logs/report_finance")
+        .methods("GET"_method)([&app](const crow::request& req, crow::response& res) {
+            auto& ctx = app.get_context<AuthMiddleware>(req);
+            try {
+                ReportFinanceCommand cmd;
+                std::ostringstream oss;
+                cmd.execute(ctx.userid, ctx.selected_id, oss);
+                res.write(oss.str());
+                res.end();
+            } catch (const std::exception& e) {
+                json err{{"message", e.what()}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+        });
+
+    CROW_ROUTE(app, "/api/v1/logs/report_employee")
+        .methods("GET"_method)([&app](const crow::request& req, crow::response& res) {
+            auto& ctx = app.get_context<AuthMiddleware>(req);
+            try {
+                ReportEmployeeCommand cmd;
+                std::ostringstream oss;
+                cmd.execute(ctx.userid, ctx.selected_id, oss);
+                res.write(oss.str());
+                res.end();
+            } catch (const std::exception& e) {
+                json err{{"message", e.what()}};
+                res.code = 400;
+                res.write(err.dump());
+                res.set_header("Content-Type", "application/json");
+                res.end();
+                return;
+            }
+        });
+
+    CROW_ROUTE(app, "/api/v1/logs/all")
+        .methods("GET"_method)([&app](const crow::request& req, crow::response& res) {
+            auto& ctx = app.get_context<AuthMiddleware>(req);
+            try {
+                LogCommand cmd;
+                std::ostringstream oss;
+                cmd.execute(ctx.userid, ctx.selected_id, oss);
+                res.write(oss.str());
+                res.end();
             } catch (const std::exception& e) {
                 json err{{"message", e.what()}};
                 res.code = 400;

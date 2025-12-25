@@ -46,6 +46,14 @@ export const useLoginStackStore = defineStore('loginStack', {
         },
         getCurrentToken(){
             return this.stack[0]!.token;
-        }
+        },
+        setCurrentId(id: number){
+            this.stack[0]!.selected_id = id;
+            this.saveToLocalStorage();
+        },
+        setCurrentToken(token: string){
+            this.stack[0]!.token = token;
+            this.saveToLocalStorage();
+        },
     },
 });

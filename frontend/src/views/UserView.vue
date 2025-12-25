@@ -72,8 +72,8 @@
             </NForm>
             <template #action>
                 <NFlex class="login-card-footer" justify="end">
-                    <NButton @click="showRegisterModal = false">取消</NButton>
-                    <NButton type="primary" @click="handleRegisterSubmit" :disabled="!registerButtonAvailable">确定
+                    <NButton @click="showRegisterModal = false">Cancel</NButton>
+                    <NButton type="primary" @click="handleRegisterSubmit" :disabled="!registerButtonAvailable">Submit
                     </NButton>
                 </NFlex>
             </template>
@@ -100,9 +100,9 @@
             </NForm>
             <template #action>
                 <NFlex class="login-card-footer" justify="end">
-                    <NButton @click="showChangePasswordModal = false">取消</NButton>
+                    <NButton @click="showChangePasswordModal = false">Cancel</NButton>
                     <NButton type="primary" @click="handleChangePasswordSubmit"
-                        :disabled="!changePasswordButtonAvailable">确定
+                        :disabled="!changePasswordButtonAvailable">Submit
                     </NButton>
                 </NFlex>
             </template>
@@ -132,8 +132,8 @@
             </NForm>
             <template #action>
                 <NFlex class="login-card-footer" justify="end">
-                    <NButton @click="showAddUserModal = false">取消</NButton>
-                    <NButton type="primary" @click="handleAddUserSubmit" :disabled="!addUserButtonAvailable">确定
+                    <NButton @click="showAddUserModal = false">Cancel</NButton>
+                    <NButton type="primary" @click="handleAddUserSubmit" :disabled="!addUserButtonAvailable">Submit
                     </NButton>
                 </NFlex>
             </template>
@@ -151,8 +151,8 @@
             </NForm>
             <template #action>
                 <NFlex class="login-card-footer" justify="end">
-                    <NButton @click="showDeleteModal = false">取消</NButton>
-                    <NButton type="primary" @click="handleDeleteSubmit" :disabled="!deleteButtonAvailable">确定
+                    <NButton @click="showDeleteModal = false">Cancel</NButton>
+                    <NButton type="primary" @click="handleDeleteSubmit" :disabled="!deleteButtonAvailable">Submit
                     </NButton>
                 </NFlex>
             </template>
@@ -179,8 +179,8 @@
             </NForm>
             <template #action>
                 <NFlex class="login-card-footer" justify="end">
-                    <NButton @click="showXXXModal = false">取消</NButton>
-                    <NButton type="primary" @click="handleXXXSubmit" :disabled="!xxxButtonAvailable">确定
+                    <NButton @click="showXXXModal = false">Cancel</NButton>
+                    <NButton type="primary" @click="handleXXXSubmit" :disabled="!xxxButtonAvailable">Submit
                     </NButton>
                 </NFlex>
             </template>
@@ -569,7 +569,7 @@ const handleDeleteSubmit = () => {
 // };
 // const handleXXXSubmit = () => {
 //     console.log("handle xxx")
-//     .value?.validate(async (errors) => {
+//     xxxFormRef.value?.validate(async (errors) => {
 //         xxxButtonAvailable.value = false;
 //          console.log("handle 1")
 //         if (!errors) {
@@ -604,8 +604,11 @@ const handleDeleteSubmit = () => {
 //                         message.error("Token unavailable. Logging out current account.");
 //                         loginStackStore.logout();
 //                     }
-//                     if (error.status === 400) {
+//                     else if (error.status === 400) {
 //                         message.error('Failed   ' + error.response?.data.message);
+//                     }
+//                      else {
+//                          message.error('Network error.')
 //                     }
 //                 }
 //                 else {

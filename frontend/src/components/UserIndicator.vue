@@ -60,8 +60,8 @@
             </NForm>
             <template #action>
                 <NFlex class="login-card-footer" justify="end">
-                    <NButton @click="showLoginModal = false">取消</NButton>
-                    <NButton type="primary" @click="handleLoginSubmit" :disabled="!loginBtnAvailable">确定</NButton>
+                    <NButton @click="showLoginModal = false">Cancel</NButton>
+                    <NButton type="primary" @click="handleLoginSubmit" :disabled="!loginBtnAvailable">Submit</NButton>
                 </NFlex>
             </template>
         </n-card>
