@@ -2,7 +2,6 @@ name: Build and Package Server (Windows)
 
 on:
   push:
-    branches: [ "main", "master" ]
     tags:
       - "v*"
 

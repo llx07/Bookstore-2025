@@ -5,9 +5,15 @@
 #include "Utils.hpp"
 void ShowFinanceCommand::execute(User::USERID_T& current_userid, int& current_bookid,
                                  std::ostream& os) {
+    std::string command_str = "show finance";
+    if (count.has_value()) command_str = command_str + " -count=" + std::to_string(count.value());
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
     if (usr_mgr.getUserByUserid(current_userid).privilege < 7) {
         throw ExecutionException("show finance error: privilege not enough to operate.");
     }
+    LogManager::getInstance().markOperationSuccess(log_id);
     if (count.has_value() && count == 0) {
         os << "\n";
         return;
@@ -25,9 +31,14 @@ void ShowFinanceCommand::execute(User::USERID_T& current_userid, int& current_bo
 ShowFinanceCommand::ShowFinanceCommand(int _count) : count(_count) {}
 void ReportFinanceCommand::execute(User::USERID_T& current_userid, int& current_bookid,
                                    std::ostream& os) {
+    std::string command_str = "report finance";
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
     if (usr_mgr.getUserByUserid(current_userid).privilege < 7) {
         throw ExecutionException("report finance error: privilege not enough to operate.");
     }
+    LogManager::getInstance().markOperationSuccess(log_id);
     std::vector<int> length{20, 30, 20};
     os << "Finance Report:\n";
     util::printTableHead(os, length);
@@ -46,10 +57,14 @@ void ReportFinanceCommand::execute(User::USERID_T& current_userid, int& current_
 }
 void ReportEmployeeCommand::execute(User::USERID_T& current_userid, int& current_bookid,
                                     std::ostream& os) {
+    std::string command_str = "report employee";
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
     if (usr_mgr.getUserByUserid(current_userid).privilege < 7) {
         throw ExecutionException("report employee error: privilege not enough to operate.");
     }
-
+    LogManager::getInstance().markOperationSuccess(log_id);
     const std::vector<int> length{20, 10, 40, 6};
     auto pairs = log_mgr.getUserIdPairs();
     for (int l = 0, r; l < pairs.size(); l = r + 1) {
@@ -75,10 +90,14 @@ void ReportEmployeeCommand::execute(User::USERID_T& current_userid, int& current
     }
 }
 void LogCommand::execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) {
+    std::string command_str = "log";
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
     if (usr_mgr.getUserByUserid(current_userid).privilege < 7) {
         throw ExecutionException("log error: privilege not enough to operate.");
     }
-
+    LogManager::getInstance().markOperationSuccess(log_id);
     std::vector<int> length{20, 10, 40, 6};
     os << "Operation Log:\n";
     util::printTableHead(os, length);

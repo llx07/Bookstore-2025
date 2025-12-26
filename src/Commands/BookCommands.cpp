@@ -3,6 +3,17 @@
 #include "Utils.hpp"
 
 void ShowCommand::execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) {
+    std::string command_str = "show";
+    if (ISBN.has_value()) command_str = command_str + " -ISBN=" + util::toString(ISBN.value());
+    if (name.has_value()) command_str = command_str + " -name=" + util::toString(name.value());
+    if (author.has_value())
+        command_str = command_str + " -author=" + util::toString(author.value());
+    if (keyword.has_value())
+        command_str = command_str + " -keyword=" + util::toString(keyword.value());
+
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
     if (usr_mgr.getUserByUserid(current_userid).privilege < 1) {
         throw ExecutionException("show error: privilege not enough to operate.");
     }
@@ -43,9 +54,17 @@ void ShowCommand::execute(User::USERID_T& current_userid, int& current_bookid, s
             os << '\n';
         }
     }
+
+    LogManager::getInstance().markOperationSuccess(log_id);
 }
 
 void BuyCommand::execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) {
+    std::string command_str =
+        "buy -ISBN=" + util::toString(ISBN) + " -quantity=" + std::to_string(quantity);
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
+
     if (usr_mgr.getUserByUserid(current_userid).privilege < 1) {
         throw ExecutionException("buy error: privilege not enough to operate.");
     }
@@ -64,11 +83,16 @@ void BuyCommand::execute(User::USERID_T& current_userid, int& current_bookid, st
     util::outputDecimal(os, money_need);
     os << "\n";
     log_mgr.addFinanceLog(util::getTimestamp(), current_userid, money_need);
+    LogManager::getInstance().markOperationSuccess(log_id);
 }
 BuyCommand::BuyCommand(const Book::ISBN_T& _ISBN, int _quantity)
     : ISBN(_ISBN), quantity(_quantity) {}
 
 void SelectCommand::execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) {
+    std::string command_str = "select -ISBN=" + util::toString(ISBN);
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
     if (usr_mgr.getUserByUserid(current_userid).privilege < 3) {
         throw ExecutionException("select error: privilege not enough to operate.");
     }
@@ -79,10 +103,26 @@ void SelectCommand::execute(User::USERID_T& current_userid, int& current_bookid,
         result = bk_mgr.getIdByISBN(ISBN);
     }
     current_bookid = result;
+    LogManager::getInstance().markOperationSuccess(log_id);
 }
 SelectCommand::SelectCommand(const Book::ISBN_T& _ISBN) : ISBN(_ISBN) {}
 
 void ModifyCommand::execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) {
+    std::string command_str = "modify";
+    if (new_ISBN.has_value())
+        command_str = command_str + " -ISBN=" + util::toString(new_ISBN.value());
+    if (new_name.has_value())
+        command_str = command_str + " -name=" + util::toString(new_name.value());
+    if (new_author.has_value())
+        command_str = command_str + " -author=" + util::toString(new_author.value());
+    if (new_keyword.has_value())
+        command_str = command_str + " -keyword=" + util::toString(new_keyword.value());
+    if (new_price.has_value())
+        command_str = command_str + " -price=" + std::to_string(new_price.value());
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
+
     if (usr_mgr.getUserByUserid(current_userid).privilege < 3) {
         throw ExecutionException("modify error: privilege not enough to operate.");
     }
@@ -110,9 +150,16 @@ void ModifyCommand::execute(User::USERID_T& current_userid, int& current_bookid,
         book_data.price = new_price.value();
     }
     bk_mgr.modifyBookData(old_ISBN, book_data);
+
+    LogManager::getInstance().markOperationSuccess(log_id);
 }
 
 void ImportCommand::execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) {
+    std::string command_str = "import -quantity=" + std::to_string(quantity) +
+                              " -total_cost=" + std::to_string(total_cost);
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
     if (usr_mgr.getUserByUserid(current_userid).privilege < 3) {
         throw ExecutionException("import error: privilege not enough to operate.");
     }
@@ -122,6 +169,8 @@ void ImportCommand::execute(User::USERID_T& current_userid, int& current_bookid,
     Book book_data = bk_mgr.getBookById(current_bookid);
     bk_mgr.importBook(book_data.ISBN, quantity);
     log_mgr.addFinanceLog(util::getTimestamp(), current_userid, -total_cost);
+
+    LogManager::getInstance().markOperationSuccess(log_id);
 }
 ImportCommand::ImportCommand(int _quantity, long long _total_cost)
     : quantity(_quantity), total_cost(_total_cost) {}

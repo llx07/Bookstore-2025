@@ -1,7 +1,17 @@
 #include "Commands/UserCommands.hpp"
 
+#include "Utils.hpp"
+
 void SwitchUserCommand::execute(User::USERID_T& current_userid, int& current_bookid,
                                 std::ostream& os) {
+    std::string command_str = "su -user=" + util::toString(userid);
+    if (password.has_value()) {
+        command_str = command_str + " -password=" + util::toString(password.value());
+    }
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
+
     if (usr_mgr.getUserByUserid(current_userid).privilege < 0) {
         throw ExecutionException("su error: privilege not enough to operate.");
     }
@@ -24,6 +34,8 @@ void SwitchUserCommand::execute(User::USERID_T& current_userid, int& current_boo
     current_userid = userid;
     current_bookid = 0;
     usr_mgr.modifyLoginCount(current_userid, 1);
+
+    LogManager::getInstance().markOperationSuccess(log_id);
 }
 SwitchUserCommand::SwitchUserCommand(const User::USERID_T& _userid) : userid(_userid) {}
 SwitchUserCommand::SwitchUserCommand(const User::USERID_T& _userid,
@@ -31,14 +43,24 @@ SwitchUserCommand::SwitchUserCommand(const User::USERID_T& _userid,
     : userid(_userid), password(_password) {}
 
 void LogoutCommand::execute(User::USERID_T& current_userid, int& current_bookid, std::ostream& os) {
+    std::string command_str = "logout";
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
     if (usr_mgr.getUserByUserid(current_userid).privilege < 1) {
         throw ExecutionException("logout error: privilege not enough to operate.");
     }
     usr_mgr.modifyLoginCount(current_userid, -1);
+    LogManager::getInstance().markOperationSuccess(log_id);
 }
 
 void RegisterCommand::execute(User::USERID_T& current_userid, int& current_bookid,
                               std::ostream& os) {
+    std::string command_str =
+        "register -user=" + util::toString(userid) + " -username=" + util::toString(username);
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
     if (usr_mgr.getUserByUserid(current_userid).privilege < 0) {
         throw ExecutionException("register error: privilege not enough to operate.");
     }
@@ -52,6 +74,7 @@ void RegisterCommand::execute(User::USERID_T& current_userid, int& current_booki
     user.password = password;
     user.privilege = 1;
     usr_mgr.addUser(user);
+    LogManager::getInstance().markOperationSuccess(log_id);
 }
 RegisterCommand::RegisterCommand(const User::USERID_T& _userid, const User::PASSWORD_T& _password,
                                  const User::USERNAME_T& _username)
@@ -59,6 +82,11 @@ RegisterCommand::RegisterCommand(const User::USERID_T& _userid, const User::PASS
 
 void ChangePasswordCommand::execute(User::USERID_T& current_userid, int& current_bookid,
                                     std::ostream& os) {
+    std::string command_str = "passwd -user=" + util::toString(userid);
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
+
     if (usr_mgr.getUserByUserid(current_userid).privilege < 1) {
         throw ExecutionException("passwd error: privilege not enough to operate.");
     }
@@ -77,6 +105,8 @@ void ChangePasswordCommand::execute(User::USERID_T& current_userid, int& current
         }
     }
     usr_mgr.modifyPassword(userid, new_password);
+
+    LogManager::getInstance().markOperationSuccess(log_id);
 }
 ChangePasswordCommand::ChangePasswordCommand(const User::USERID_T& _userid,
                                              const User::PASSWORD_T& _new_password)
@@ -88,6 +118,12 @@ ChangePasswordCommand::ChangePasswordCommand(const User::USERID_T& _userid,
 
 void AddUserCommand::execute(User::USERID_T& current_userid, int& current_bookid,
                              std::ostream& os) {
+    std::string command_str = "useradd -user=" + util::toString(userid) +
+                              " -username=" + util::toString(username) +
+                              " -privilege=" + std::to_string(privilege);
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
     if (usr_mgr.getUserByUserid(current_userid).privilege < 3) {
         throw ExecutionException("useradd error: privilege not enough to operate.");
     }
@@ -104,6 +140,8 @@ void AddUserCommand::execute(User::USERID_T& current_userid, int& current_bookid
     user.password = password;
     user.privilege = privilege;
     usr_mgr.addUser(user);
+
+    LogManager::getInstance().markOperationSuccess(log_id);
 }
 AddUserCommand::AddUserCommand(const User::USERID_T& _userid, const User::PASSWORD_T& _password,
                                int _privilege, const User::USERNAME_T& _username)
@@ -111,6 +149,10 @@ AddUserCommand::AddUserCommand(const User::USERID_T& _userid, const User::PASSWO
 
 void DeleteUserCommand::execute(User::USERID_T& current_userid, int& current_bookid,
                                 std::ostream& os) {
+    std::string command_str = "delete -user=" + util::toString(userid);
+    int log_id = LogManager::getInstance().addOperationLog(
+        util::getTimestamp(), current_userid, usr_mgr.getUserByUserid(current_userid).privilege,
+        util::toArray<Log::OPERATION_T>(command_str));
     if (usr_mgr.getUserByUserid(current_userid).privilege < 7) {
         throw ExecutionException("delete error: privilege not enough to operate.");
     }
@@ -122,5 +164,6 @@ void DeleteUserCommand::execute(User::USERID_T& current_userid, int& current_boo
         throw ExecutionException("delete error: userid have been logged in");
     }
     usr_mgr.eraseUser(userid);
+    LogManager::getInstance().markOperationSuccess(log_id);
 }
 DeleteUserCommand::DeleteUserCommand(const User::USERID_T& _userid) : userid(_userid) {}
