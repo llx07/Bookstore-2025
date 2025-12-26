@@ -565,7 +565,7 @@ const handleModifySubmit = () => {
                 if (modifyForm.value.name) data['name'] = modifyForm.value.name;
                 if (modifyForm.value.author) data['author'] = modifyForm.value.author;
                 if (modifyForm.value.keyword) data['keyword'] = modifyForm.value.keyword;
-                if (modifyForm.value.price !== null) data['price'] = modifyForm.value.price.toFixed(2);
+                if (modifyForm.value.price !== null) data['price'] = (modifyForm.value.price as number).toFixed(2);
 
 
 
@@ -639,7 +639,7 @@ const handleImportSubmit = () => {
                 const price = importForm.value.price;
                 const quantity = importForm.value.quantity;
                 const data: { [key: string]: string } = {
-                    total_cost: price!.toFixed(2),
+                    total_cost: (price! as number).toFixed(2),
                     quantity: quantity.toString(),
                 };
 

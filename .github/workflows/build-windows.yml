@@ -1,0 +1,106 @@
+name: Build and Package Bookstore
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch: 
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 1. 环境准备 (MSYS2)
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: UCRT64
+        update: true
+        install: >-
+          mingw-w64-ucrt-x86_64-gcc
+          mingw-w64-ucrt-x86_64-cmake
+          mingw-w64-ucrt-x86_64-make
+          mingw-w64-ucrt-x86_64-openssl
+          mingw-w64-ucrt-x86_64-ntldd
+
+    # 2. 环境准备 (Node.js)
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    # 3. 构建前端
+    - name: Build Frontend
+      run: |
+        cd frontend
+        npm install
+        npm run build
+
+    # 4. 构建后端
+    - name: Build Backend
+      shell: msys2 {0}
+      run: |
+        mkdir -p build_server
+        cd build_server
+        cmake -G "MinGW Makefiles" \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+              ..
+        mingw32-make -j$(nproc)
+
+    # 5. 整理发布文件夹并收集 DLL
+    - name: Prepare Release Folder
+      shell: pwsh
+      run: |
+        # 创建一个临时发布目录
+        $STAGING = "Bookstore_v1.0_Windows"
+        New-Item -ItemType Directory -Path $STAGING
+        
+        # 1. 复制可执行文件
+        Copy-Item "build_server/server.exe" -Destination $STAGING/
+        
+        # 2. 复制前端静态资源
+        Copy-Item -Path "frontend/dist" -Destination "$STAGING/static" -Recurse
+        
+        # 3. 收集运行时依赖 (DLL)
+        $env:Path = "C:\msys64\ucrt64\bin;" + $env:Path
+        $DLL_LIST = @(
+            "libcrypto-3-x64.dll",
+            "libssl-3-x64.dll",
+            "libstdc++-6.dll",
+            "libgcc_s_seh-1.dll",
+            "libwinpthread-1.dll",
+            "zlib1.dll"
+        )
+        foreach ($dll in $DLL_LIST) {
+            $dllPath = where.exe $dll | Select-Object -First 1
+            if ($dllPath) { Copy-Item $dllPath -Destination $STAGING/ }
+        }
+
+    # 6. 【核心：打包成 ZIP】
+    - name: Create Zip Archive
+      shell: pwsh
+      run: |
+        # 将上面准备好的文件夹压缩成 Bookstore.zip
+        # -Path "文件夹\*" 表示解压后直接看到内容，不套娃
+        Compress-Archive -Path "Bookstore_v1.0_Windows\*" -DestinationPath "Bookstore_Windows_x64.zip"
+
+    # 7. 上传 ZIP 文件
+    - name: Upload Zip Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: server-windows-x64
+        path: Bookstore_Windows_x64.zip
+        
+    # 7. (可选) 如果推送到的是 tag，则自动创建 Release
+
+    - name: Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+          files: Bookstore_Windows_x64.zip
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

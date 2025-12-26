@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.5..3.14)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+
 
 project(Bookstore)
 
@@ -24,6 +26,7 @@ execute_process(
         OUTPUT_QUIET
         ERROR_QUIET
 )
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
 
 set(MAIN_SOURCES
         src/BooksManager.cpp
@@ -93,12 +96,14 @@ if (GIT_CONNECTION_STATUS EQUAL 0)
     target_include_directories(server PRIVATE ${asio_SOURCE_DIR}/asio/include)
     target_link_libraries(server PRIVATE jwt-cpp::jwt-cpp)
 
-
-    add_executable(tmp src/tmp.cpp)
-    target_link_libraries(tmp PRIVATE nlohmann_json::nlohmann_json)
-    target_include_directories(tmp PRIVATE ${crow_SOURCE_DIR}/include)
-    target_include_directories(tmp PRIVATE ${asio_SOURCE_DIR}/asio/include)
-    target_link_libraries(tmp PRIVATE jwt-cpp::jwt-cpp)
+    if(WIN32)
+    target_link_libraries(server
+            PRIVATE
+            ws2_32
+            mswsock
+    )
+    target_compile_definitions(server PRIVATE _WIN32_WINNT=0x0a00)
+    endif()
 
 
 else ()

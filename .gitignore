@@ -2,5 +2,6 @@ requirements.md
 .vscode
 .idea
 build
+build_server
 build_coverage
 node_modules

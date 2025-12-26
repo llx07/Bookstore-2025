@@ -4,8 +4,8 @@
 #include <sstream>
 
 #include "Commands/BookCommands.hpp"
-#include "Commands/UserCommands.hpp"
 #include "Commands/LogCommands.hpp"
+#include "Commands/UserCommands.hpp"
 #include "Parser/FieldParser.hpp"
 #include "UsersManager.hpp"
 #include "crow.h"
@@ -68,9 +68,7 @@ int main() {
             "content-type")
         .methods("POST"_method, "GET"_method, "PUT"_method, "DELETE"_method, "PATCH"_method,
                  "OPTIONS"_method);
-
-    CROW_ROUTE(app, "/")([]() { return "Hello, Crow!"; });
-
+                 
     CROW_ROUTE(app, "/api/v1/auth/login")
         .methods("POST"_method)([&app](const crow::request& req, crow::response& res) {
             auto& ctx = app.get_context<AuthMiddleware>(req);
@@ -581,7 +579,7 @@ int main() {
         .methods("GET"_method)([&app](const crow::request& req, crow::response& res) {
             auto& ctx = app.get_context<AuthMiddleware>(req);
             try {
-                if(req.url_params.get("count")){
+                if (req.url_params.get("count")) {
                     int count = parseCount(req.url_params.get("count"));
                     ShowFinanceCommand cmd(count);
                     std::ostringstream oss;
@@ -661,6 +659,39 @@ int main() {
                 return;
             }
         });
+
+    // all the static files
+    CROW_ROUTE(app, "/assets/<string>")
+    ([](const crow::request& req, crow::response& res, std::string filename) {
+        std::string path = "static/assets/" + filename;
+        res.set_static_file_info(path);
+        res.end();
+    });
+    CROW_ROUTE(app, "/favicon.ico")
+    ([](const crow::request& req, crow::response& res) {
+        res.set_static_file_info("static/favicon.ico");
+        res.end();
+    });
+    CROW_ROUTE(app, "/")
+    ([](const crow::request& req, crow::response& res) {
+        res.set_static_file_info("static/index.html");
+        res.end();
+    });
+
+    app.catchall_route()
+    ([](const crow::request& req, crow::response& res){
+        // 获取请求路径
+        std::string path = req.url;
+
+        if (path.starts_with("/api") || path.starts_with("/assets") ) {
+            res.code = 404;
+            res.end();
+        } 
+        else {
+            res.set_static_file_info("dist/index.html");
+            res.end();
+        }
+    });
 
     app.port(10086).multithreaded().run();
     return 0;
