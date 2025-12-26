@@ -1,4 +1,4 @@
-name: Build and Package Server (Windwos)
+name: Build and Package Server (Windows)
 
 on:
   push:
@@ -86,14 +86,14 @@ jobs:
       run: |
         # 将上面准备好的文件夹压缩成 Bookstore.zip
         # -Path "文件夹\*" 表示解压后直接看到内容，不套娃
-        Compress-Archive -Path "Bookstore_v1.0_Windows\*" -DestinationPath "Bookstore_Windows_x64.zip"
+        Compress-Archive -Path "Bookstore_v1.0_Windows\*" -DestinationPath "server-build-windows.zip"
 
     # 7. 上传 ZIP 文件
     - name: Upload Zip Artifact
       uses: actions/upload-artifact@v4
       with:
         name: server-windows-x64
-        path: Bookstore_Windows_x64.zip
+        path: server-build-windows.zip
         
     # 7. (可选) 如果推送到的是 tag，则自动创建 Release
 
@@ -101,6 +101,6 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v2
       with:
-          files: Bookstore_Windows_x64.zip
+          files: server-build-windows.zip
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

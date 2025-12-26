@@ -39,20 +39,20 @@ jobs:
       # 5. 打包构建产物 (为了方便下载，先压缩一下)
       - name: Create Tarball
         run: |
-          tar -czvf server-build.tar.gz build_server/
+          tar -czvf server-build-ubuntu.tar.gz build_server/
 
       # 6. 上传 Artifact (在 GitHub Action 页面可以直接下载)
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: server-linux-x64
-          path: server-build.tar.gz
+          path: server-build-ubuntu.tar.gz
 
       # 7. (可选) 如果推送到的是 tag，则自动创建 Release
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: server-build.tar.gz
+          files: server-build-ubuntu.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
