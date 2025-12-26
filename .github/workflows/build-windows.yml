@@ -1,4 +1,4 @@
-name: Build and Package Bookstore
+name: Build and Package Server (Windwos)
 
 on:
   push:
