@@ -80,7 +80,6 @@ jobs:
             if ($dllPath) { Copy-Item $dllPath -Destination $STAGING/ }
         }
 
-    # 6. 【核心：打包成 ZIP】
     - name: Create Zip Archive
       shell: pwsh
       run: |
@@ -88,7 +87,6 @@ jobs:
         # -Path "文件夹\*" 表示解压后直接看到内容，不套娃
         Compress-Archive -Path "Bookstore_v1.0_Windows\*" -DestinationPath "server-build-windows.zip"
 
-    # 7. 上传 ZIP 文件
     - name: Upload Zip Artifact
       uses: actions/upload-artifact@v4
       with:
