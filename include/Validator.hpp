@@ -73,7 +73,7 @@ public:
     }
 
     // Check if all characters of value is in pat>
-    expect& consistedOf(const T& pat)
+    expect& toBeConsistedOf(const T& pat)
         requires is_basic_string_v<T>  // use requires here to prevent compile errors.
     {
         using CharT = typename T::value_type;
