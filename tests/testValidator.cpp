@@ -16,9 +16,9 @@ TEST_CASE("Validator Not Clause", "[Validator]") {
 }
 TEST_CASE("String Validator", "[Validator]") {
     const std::string& ascii_lowercase{"abcdefghijklmnopqrstuvwxyz"};
-    expect(std::string{"helloworldhasonlylowercases"}).consistedOf(ascii_lowercase);
+    expect(std::string{"helloworldhasonlylowercases"}).toBeConsistedOf(ascii_lowercase);
     REQUIRE_THROWS_AS(expect(std::string{"hello world has characters that is not lowercase"})
-                          .consistedOf(ascii_lowercase),
+                          .toBeConsistedOf(ascii_lowercase),
                       ExpectException);
 
     expect(std::string{"TEST1"}).toMatch(".{4}\\d");

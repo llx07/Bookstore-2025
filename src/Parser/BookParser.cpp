@@ -14,19 +14,19 @@
 
 // Token will not be empty.
 static Book::ISBN_T parseISBN(const std::string& token) {
-    expect(token).consistedOf(PRINTABLE);
+    expect(token).toBeConsistedOf(PRINTABLE);
     return util::toArray<Book::ISBN_T>(token);
 }
 static Book::BOOKNAME_T parseBookName(const std::string& token) {
-    expect(token).consistedOf(PRINTABLE_WITHOUT_QUOTES);
+    expect(token).toBeConsistedOf(PRINTABLE_WITHOUT_QUOTES);
     return util::toArray<Book::BOOKNAME_T>(token);
 }
 static Book::AUTHOR_T parseAuthor(const std::string& token) {
-    expect(token).consistedOf(PRINTABLE_WITHOUT_QUOTES);
+    expect(token).toBeConsistedOf(PRINTABLE_WITHOUT_QUOTES);
     return util::toArray<Book::AUTHOR_T>(token);
 }
 static Book::KEYWORD_T parseKeyword(const std::string& token) {
-    expect(token).consistedOf(PRINTABLE_WITHOUT_QUOTES);
+    expect(token).toBeConsistedOf(PRINTABLE_WITHOUT_QUOTES);
     auto keywords = util::split(token, '|');
     std::ranges::sort(keywords);
     expect(keywords[0].size()).ge(1);
@@ -35,13 +35,13 @@ static Book::KEYWORD_T parseKeyword(const std::string& token) {
     return util::toArray<Book::KEYWORD_T>(token);
 }
 static int parseQuantity(const std::string& token) {
-    expect(token).consistedOf(NUMERIC);
+    expect(token).toBeConsistedOf(NUMERIC);
     int value = util::toInt(token);
     expect(value).ge(1).le(std::numeric_limits<int>::max());
     return value;
 }
 static long long parsePrice(const std::string& token) {
-    expect(token).consistedOf(NUMERIC_DOT);
+    expect(token).toBeConsistedOf(NUMERIC_DOT);
     expect(token.size()).le(13);
     long long value = util::toDecimal(token);
     expect(value).ge(0);
@@ -51,7 +51,7 @@ static long long parsePrice(const std::string& token) {
 enum class Option { ISBN, BOOKNAME, AUTHOR, KEYWORD, PRICE };
 
 static std::pair<Option, std::string> parseOption(const std::string& token) {
-    expect(token).consistedOf(PRINTABLE);
+    expect(token).toBeConsistedOf(PRINTABLE);
     expect(token[0]).toBe('-');
     if (token.size() >= 7 && token.substr(1, 4) == "ISBN") {
         expect(token[5]).toBe('=');
@@ -63,7 +63,7 @@ static std::pair<Option, std::string> parseOption(const std::string& token) {
         expect(token[5]).toBe('=');
         expect(token[6]).toBe('"');
         expect(token.back()).toBe('"');
-        expect(token.substr(7, token.size() - 7 - 1)).consistedOf(PRINTABLE_WITHOUT_QUOTES);
+        expect(token.substr(7, token.size() - 7 - 1)).toBeConsistedOf(PRINTABLE_WITHOUT_QUOTES);
         return std::make_pair(Option::BOOKNAME, token.substr(7, token.size() - 7 - 1));
     }
     if (token.size() >= 11 && token.substr(1, 6) == "author") {
@@ -72,7 +72,7 @@ static std::pair<Option, std::string> parseOption(const std::string& token) {
         expect(token[7]).toBe('=');
         expect(token[8]).toBe('"');
         expect(token.back()).toBe('"');
-        expect(token.substr(9, token.size() - 9 - 1)).consistedOf(PRINTABLE_WITHOUT_QUOTES);
+        expect(token.substr(9, token.size() - 9 - 1)).toBeConsistedOf(PRINTABLE_WITHOUT_QUOTES);
         return std::make_pair(Option::AUTHOR, token.substr(9, token.size() - 9 - 1));
     }
     if (token.size() >= 12 && token.substr(1, 7) == "keyword") {
@@ -81,7 +81,7 @@ static std::pair<Option, std::string> parseOption(const std::string& token) {
         expect(token[8]).toBe('=');
         expect(token[9]).toBe('"');
         expect(token.back()).toBe('"');
-        expect(token.substr(10, token.size() - 10 - 1)).consistedOf(PRINTABLE_WITHOUT_QUOTES);
+        expect(token.substr(10, token.size() - 10 - 1)).toBeConsistedOf(PRINTABLE_WITHOUT_QUOTES);
         return std::make_pair(Option::KEYWORD, token.substr(10, token.size() - 10 - 1));
     }
     if (token.size() >= 8 && token.substr(1, 5) == "price") {
@@ -110,7 +110,7 @@ auto handleSHOW(const std::vector<std::string>& tokens) -> std::unique_ptr<Comma
         } else if (tp == Option::AUTHOR) {
             result->author = util::toArray<Book::AUTHOR_T>(val);
         } else if (tp == Option::KEYWORD) {
-            expect(val).consistedOf(PRINTABLE_WITHOUT_BAR);
+            expect(val).toBeConsistedOf(PRINTABLE_WITHOUT_BAR);
             result->keyword = util::toArray<Book::KEYWORD_T>(val);
         } else {
             throw ParseException("show error: invalid option");
